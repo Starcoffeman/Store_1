@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{/info/layout}">
+<head>
+	<title th:text="${article.title} + ' | ТехноШок Блог'"></title>
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+	<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+	<script>
+		// Объявляем функцию глобально ДО того, как HTML будет отрисован
+		window.reactToArticle = async function(button, reactionType) {
+			console.log('reactToArticle вызвана', reactionType);
+
+			function getCsrfToken() {
+				return document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+			}
+
+			function getCsrfHeader() {
+				return document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+			}
+
+			function isUserAuthenticated() {
+				return getCsrfToken() !== '';
+			}
+
+			function showNotification(message, isError) {
+				const notification = document.createElement('div');
+				notification.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${message}`;
+				notification.style.cssText = `
+					position: fixed; bottom: 20px; right: 20px;
+					background: ${isError ? 'rgba(255,100,100,0.95)' : 'rgba(111,240,165,0.95)'};
+					color: ${isError ? '#fff' : '#1a1c1f'};
+					padding: 12px 20px; border-radius: 10px; z-index: 10000;
+					font-size: 14px; animation: slideInRight 0.3s ease;
+					box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+				`;
+				document.body.appendChild(notification);
+				setTimeout(() => notification.remove(), 3000);
+			}
+
+			function showAuthNotification() {
+				showNotification('Для выполнения действия необходимо авторизоваться', true);
+				setTimeout(() => window.location.href = '/login', 1500);
+			}
+
+			if (!isUserAuthenticated()) {
+				showAuthNotification();
+				return;
+			}
+
+			const articleId = button.getAttribute('data-id');
+			const likeBtn = document.querySelector('.like-btn');
+			const dislikeBtn = document.querySelector('.dislike-btn');
+			const isLikeActive = likeBtn?.classList.contains('active');
+			const isDislikeActive = dislikeBtn?.classList.contains('active');
+
+			let url, method;
+			if ((reactionType === 'like' && isLikeActive) || (reactionType === 'dislike' && isDislikeActive)) {
+				url = `/api/articles/${articleId}/reaction`;
+				method = 'DELETE';
+			} else if (reactionType === 'like') {
+				url = `/api/articles/${articleId}/like`;
+				method = 'POST';
+			} else {
+				url = `/api/articles/${articleId}/dislike`;
+				method = 'POST';
+			}
+
+			const csrfToken = getCsrfToken();
+			const csrfHeader = getCsrfHeader();
+			const headers = { 'Content-Type': 'application/json' };
+			if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+			const originalHtml = button.innerHTML;
+			button.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+			button.disabled = true;
+
+			try {
+				const response = await fetch(url, { method: method, headers: headers });
+				const result = await response.json();
+
+				if (result.success) {
+					const likesSpan = document.getElementById('likesCount');
+					const dislikesSpan = document.getElementById('dislikesCount');
+					if (likesSpan) likesSpan.textContent = result.likes;
+					if (dislikesSpan) dislikesSpan.textContent = result.dislikes;
+
+					if (result.userReaction === 'LIKE') {
+						likeBtn?.classList.add('active');
+						dislikeBtn?.classList.remove('active');
+					} else if (result.userReaction === 'DISLIKE') {
+						dislikeBtn?.classList.add('active');
+						likeBtn?.classList.remove('active');
+					} else {
+						likeBtn?.classList.remove('active');
+						dislikeBtn?.classList.remove('active');
+					}
+					showNotification(result.message || 'Готово!', false);
+				} else {
+					showNotification(result.message || 'Произошла ошибка', true);
+				}
+			} catch (error) {
+				console.error('Ошибка:', error);
+				showNotification('Ошибка соединения', true);
+			} finally {
+				button.innerHTML = originalHtml;
+				button.disabled = false;
+			}
+		};
+
+		window.shareOnVK = function() {
+			const url = encodeURIComponent(window.location.href);
+			const title = encodeURIComponent(document.querySelector('.article-title')?.textContent || '');
+			window.open(`https://vk.com/share.php?url=${url}&title=${title}`, '_blank', 'width=600,height=400');
+		};
+
+		window.shareOnTelegram = function() {
+			const url = encodeURIComponent(window.location.href);
+			window.open(`https://t.me/share/url?url=${url}`, '_blank', 'width=600,height=400');
+		};
+
+		console.log('Скрипт загружен, reactToArticle доступна:', typeof window.reactToArticle);
+	</script>
+
+	<style>
+		.article-container {
+			max-width: 1100px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+
+		.article-header {
+			margin-bottom: 30px;
+			text-align: center;
+		}
+
+		.article-type {
+			display: inline-block;
+			background: var(--neon-green);
+			color: var(--night-dark);
+			padding: 5px 15px;
+			border-radius: 20px;
+			font-size: 12px;
+			font-weight: bold;
+			margin-bottom: 15px;
+		}
+
+		.article-title {
+			font-size: 2.5rem;
+			color: var(--white);
+			margin-bottom: 20px;
+			line-height: 1.3;
+		}
+
+		.article-meta {
+			display: flex;
+			justify-content: center;
+			gap: 25px;
+			color: var(--off-white);
+			opacity: 0.7;
+			font-size: 14px;
+			margin-bottom: 30px;
+			flex-wrap: wrap;
+		}
+
+		.article-meta i {
+			margin-right: 5px;
+			color: var(--neon-green);
+		}
+
+		.article-image {
+			width: 100%;
+			max-height: 400px;
+			object-fit: cover;
+			border-radius: 10px;
+			margin-bottom: 30px;
+		}
+
+		.article-content {
+			color: var(--off-white);
+			line-height: 1.8;
+			font-size: 16px;
+		}
+
+		.article-content p {
+			margin-bottom: 20px;
+		}
+
+		.article-content h2, .article-content h3 {
+			color: var(--neon-green);
+			margin-top: 30px;
+			margin-bottom: 15px;
+		}
+
+		/* Reactions Section - Минималистичный вариант */
+		.reactions-section {
+			display: flex;
+			gap: 20px;
+			margin: 40px 0;
+			padding: 0;
+			background: transparent;
+			justify-content: center;
+		}
+
+		.reaction-btn {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			background: transparent;
+			border: 1px solid rgba(111, 240, 165, 0.25);
+			padding: 8px 20px;
+			border-radius: 40px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			font-size: 14px;
+		}
+
+		.reaction-btn i {
+			font-size: 18px;
+			transition: transform 0.2s ease;
+		}
+
+		.reaction-btn.like-btn {
+			color: #888;
+		}
+		.reaction-btn.like-btn:hover {
+			border-color: #4CAF50;
+			color: #4CAF50;
+		}
+		.reaction-btn.like-btn.active {
+			background: transparent;
+			border-color: #4CAF50;
+			color: #4CAF50;
+		}
+		.reaction-btn.like-btn.active i {
+			transform: scale(1.1);
+		}
+
+		.reaction-btn.dislike-btn {
+			color: #888;
+		}
+		.reaction-btn.dislike-btn:hover {
+			border-color: #f44336;
+			color: #f44336;
+		}
+		.reaction-btn.dislike-btn.active {
+			background: transparent;
+			border-color: #f44336;
+			color: #f44336;
+		}
+		.reaction-btn.dislike-btn.active i {
+			transform: scale(1.1);
+		}
+
+		.reaction-btn:hover i {
+			transform: scale(1.1);
+		}
+
+		.share-section {
+			margin: 30px 0;
+			text-align: center;
+		}
+
+		.share-title {
+			color: var(--off-white);
+			margin-bottom: 15px;
+			font-size: 14px;
+		}
+
+		.share-buttons {
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+
+		.share-btn {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 18px;
+			border-radius: 25px;
+			text-decoration: none;
+			transition: all var(--transition-fast);
+		}
+
+		.share-btn.vk { background: #4a76a8; color: white; }
+		.share-btn.tg { background: #2ca5e0; color: white; }
+		.share-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+		/* Похожие статьи - ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ */
+		.related-articles {
+			margin-top: 50px;
+			width: 100%;
+		}
+
+		.related-title {
+			color: var(--neon-green);
+			font-size: 1.5rem;
+			margin-bottom: 25px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		/* Горизонтальный скролл */
+		.related-grid {
+			display: flex;
+			gap: 30px;
+			overflow-x: auto;
+			padding-bottom: 15px;
+			scrollbar-width: thin;
+			scrollbar-color: var(--neon-green) rgba(111, 240, 165, 0.15);
+		}
+
+		/* Стилизация скроллбара */
+		.related-grid::-webkit-scrollbar {
+			height: 8px;
+		}
+
+		.related-grid::-webkit-scrollbar-track {
+			background: rgba(111, 240, 165, 0.1);
+			border-radius: 4px;
+		}
+
+		.related-grid::-webkit-scrollbar-thumb {
+			background: var(--neon-green);
+			border-radius: 4px;
+			transition: all 0.3s ease;
+		}
+
+		.related-grid::-webkit-scrollbar-thumb:hover {
+			background: var(--neon-green-dark);
+		}
+
+		/* Карточки с фиксированной шириной */
+		.related-card {
+			flex: 0 0 320px;
+			background: rgba(37, 39, 43, 0.9);
+			border-radius: 16px;
+			overflow: hidden;
+			transition: all var(--transition-fast);
+			text-decoration: none;
+			display: block;
+			border: 1px solid rgba(111, 240, 165, 0.2);
+		}
+
+		.related-card:hover {
+			transform: translateY(-5px);
+			border-color: var(--neon-green);
+			box-shadow: var(--shadow-neon);
+		}
+
+		.related-card img {
+			width: 100%;
+			height: 180px;
+			object-fit: cover;
+		}
+
+		.related-card-content {
+			padding: 18px;
+		}
+
+		.related-card-title {
+			color: var(--white);
+			font-size: 15px;
+			margin-bottom: 10px;
+			line-height: 1.4;
+			font-weight: 500;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+
+		.related-card-date {
+			color: var(--neon-green);
+			font-size: 12px;
+			display: flex;
+			align-items: center;
+			gap: 5px;
+		}
+
+		.back-button {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			background: rgba(255, 255, 255, 0.1);
+			border: 1px solid rgba(111, 240, 165, 0.3);
+			color: var(--off-white);
+			padding: 10px 20px;
+			border-radius: 30px;
+			text-decoration: none;
+			margin-bottom: 20px;
+			transition: all var(--transition-fast);
+		}
+
+		.back-button:hover {
+			background: rgba(111, 240, 165, 0.2);
+			transform: translateX(-5px);
+		}
+
+		/* Убираем скролл на мобильных */
+		@media (max-width: 768px) {
+			.article-title { font-size: 1.8rem; }
+			.article-container { padding: 15px; }
+			.reaction-btn { padding: 8px 18px; }
+			.related-grid {
+				gap: 15px;
+				padding-bottom: 10px;
+			}
+			.related-card {
+				flex: 0 0 280px;
+			}
+			.related-card img {
+				height: 150px;
+			}
+		}
+	</style>
+</head>
+<body>
+<div layout:fragment="content">
+	<div class="article-container">
+		<a href="/blog" class="back-button">
+			<i class="fas fa-arrow-left"></i> Ко всем статьям
+		</a>
+
+		<article>
+			<div class="article-header">
+				<span class="article-type" th:text="${article.articleTypeName}">Новость</span>
+				<h1 class="article-title" th:text="${article.title}">Заголовок статьи</h1>
+				<div class="article-meta">
+					<span><i class="fas fa-calendar-alt"></i> <span th:text="${article.formattedDate}">Дата</span></span>
+					<span><i class="fas fa-eye"></i> <span th:text="${article.views}">0</span> просмотров</span>
+				</div>
+			</div>
+
+			<img th:if="${article.imageUrl}" th:src="${article.imageUrl}" th:alt="${article.title}" class="article-image">
+
+			<div class="article-content" th:utext="${article.content}"></div>
+
+			<!-- Лайки/Дизлайки -->
+			<div class="reactions-section">
+				<button class="reaction-btn like-btn" th:data-id="${article.id}" onclick="reactToArticle(this, 'like')">
+					<i class="fas fa-thumbs-up"></i>
+					<span>Нравится</span>
+					<span class="reaction-count" id="likesCount" th:text="${article.likes}">0</span>
+				</button>
+				<button class="reaction-btn dislike-btn" th:data-id="${article.id}" onclick="reactToArticle(this, 'dislike')">
+					<i class="fas fa-thumbs-down"></i>
+					<span>Не нравится</span>
+					<span class="reaction-count" id="dislikesCount" th:text="${article.dislikes}">0</span>
+				</button>
+			</div>
+
+			<!-- Поделиться -->
+			<div class="share-section">
+				<div class="share-title">Поделиться статьей:</div>
+				<div class="share-buttons">
+					<a href="#" class="share-btn vk" onclick="shareOnVK()"><i class="fab fa-vk"></i> VK</a>
+					<a href="#" class="share-btn tg" onclick="shareOnTelegram()"><i class="fab fa-telegram"></i> Telegram</a>
+				</div>
+			</div>
+		</article>
+
+		<!-- Похожие статьи - ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ -->
+		<div class="related-articles" th:if="${latestArticles != null and !latestArticles.isEmpty()}">
+			<h3 class="related-title">📖 Похожие статьи</h3>
+			<div class="related-grid">
+				<a th:each="item, iterStat : ${latestArticles}"
+				   th:if="${item.id != article.id and iterStat.count <= 6}"
+				   th:href="@{/blog/{slug}(slug=${item.slug})}"
+				   class="related-card">
+					<img th:if="${item.imageUrl}" th:src="${item.imageUrl}" th:alt="${item.title}">
+					<div class="related-card-content">
+						<h4 class="related-card-title" th:text="${item.title}">Заголовок</h4>
+						<div class="related-card-date" th:text="${item.formattedDate}">Дата</div>
+					</div>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

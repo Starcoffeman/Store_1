@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Детали заказа #<span th:text="${order.id}"></span> | ТехноШок</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+    <style>
+        body {
+            background: var(--night-dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .order-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Хедер */
+        .order-header {
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(111, 240, 165, 0.1), rgba(111, 240, 165, 0.05));
+            border-radius: 24px;
+            border: 1px solid rgba(111, 240, 165, 0.2);
+        }
+
+        .order-header h1 {
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--white);
+            margin-bottom: 15px;
+        }
+
+        .order-header h1 i {
+            color: var(--neon-green);
+        }
+
+        .order-status {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+
+        .status-pending {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+        }
+
+        .status-processing {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+        }
+
+        .status-cancelled {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        /* Карточки информации */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: rgba(37, 39, 43, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(111, 240, 165, 0.2);
+        }
+
+        .info-card h3 {
+            color: var(--neon-green);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(111, 240, 165, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(111, 240, 165, 0.1);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--off-white);
+            opacity: 0.8;
+        }
+
+        .info-value {
+            color: var(--white);
+            font-weight: 500;
+        }
+
+        /* Таблица товаров */
+        .items-section {
+            background: rgba(37, 39, 43, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(111, 240, 165, 0.2);
+        }
+
+        .items-section h3 {
+            color: var(--neon-green);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items-table th {
+            text-align: left;
+            padding: 12px 15px;
+            color: var(--neon-green);
+            border-bottom: 1px solid rgba(111, 240, 165, 0.2);
+        }
+
+        .items-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(111, 240, 165, 0.1);
+            color: var(--off-white);
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .product-image {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .product-name {
+            color: var(--white);
+            font-weight: 500;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /* Итого */
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .totals-card {
+            background: rgba(37, 39, 43, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            width: 320px;
+            border: 1px solid rgba(111, 240, 165, 0.2);
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(111, 240, 165, 0.1);
+        }
+
+        .total-row:last-child {
+            border-bottom: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--neon-green);
+            padding-top: 15px;
+            margin-top: 5px;
+        }
+
+        /* Кнопки действий */
+        .actions-section {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-start;
+        }
+
+        .btn-action {
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--off-white);
+            border: 1px solid rgba(111, 240, 165, 0.3);
+        }
+
+        .btn-back:hover {
+            background: rgba(111, 240, 165, 0.1);
+            color: var(--neon-green);
+            transform: translateY(-2px);
+        }
+
+        .btn-cancel {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(231, 76, 60, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-repeat {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
+            color: var(--night-dark);
+        }
+
+        .btn-repeat:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-neon);
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .items-table {
+                display: block;
+                overflow-x: auto;
+            }
+            .totals-section {
+                justify-content: center;
+            }
+            .actions-section {
+                flex-direction: column;
+            }
+            .btn-action {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Фоновые элементы -->
+<div class="bg-blur-circle bg-circle-1"></div>
+<div class="bg-blur-circle bg-circle-2"></div>
+<div class="bg-blur-circle bg-circle-3"></div>
+<div class="bg-blur-circle bg-circle-4"></div>
+<div class="stars" id="stars"></div>
+<div class="soft-glow"></div>
+
+<div class="order-wrapper">
+    <!-- Хедер -->
+    <div class="order-header">
+        <h1>
+            <i class="fas fa-shopping-bag"></i>
+            Заказ #<span th:text="${order.id}"></span>
+        </h1>
+        <div>
+            <span class="order-status"
+                  th:classappend="${order.status == 'completed' ? 'status-completed' : (order.status == 'pending' ? 'status-pending' : (order.status == 'cancelled' ? 'status-cancelled' : 'status-processing'))}"
+                  th:text="${order.status == 'completed' ? 'Завершен' : (order.status == 'pending' ? 'Ожидает оплаты' : (order.status == 'cancelled' ? 'Отменен' : 'В обработке'))}">
+            </span>
+        </div>
+    </div>
+
+    <!-- Информация о заказе и доставке -->
+    <div class="info-grid">
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> Информация о заказе</h3>
+            <div class="info-row">
+                <span class="info-label">Дата заказа:</span>
+                <span class="info-value" th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Способ доставки:</span>
+                <span class="info-value" th:text="${order.deliveryMethod}">Курьерская доставка</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Способ оплаты:</span>
+                <span class="info-value" th:text="${order.paymentMethod}">Банковская карта</span>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h3><i class="fas fa-truck"></i> Информация о доставке</h3>
+            <div class="info-row">
+                <span class="info-label">Получатель:</span>
+                <span class="info-value" th:text="${user.surname + ' ' + user.name}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Телефон:</span>
+                <span class="info-value" th:text="${user.phone}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value" th:text="${user.email}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Адрес:</span>
+                <span class="info-value" th:text="${order.address}"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Товары в заказе -->
+    <div class="items-section">
+        <h3><i class="fas fa-boxes"></i> Товары в заказе</h3>
+        <table class="items-table">
+            <thead>
+            <tr>
+                <th>Товар</th>
+                <th class="text-center">Количество</th>
+                <th class="text-right">Цена</th>
+                <th class="text-right">Сумма</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${items}">
+                <td>
+                    <div class="product-info">
+                        <div class="product-image">
+                            <img th:src="${item.fileurl != null ? item.fileurl : '/images/images.png'}"
+                                 th:alt="${item.name}">
+                        </div>
+                        <div class="product-name" th:text="${item.name}"></div>
+                    </div>
+                </td>
+                <td class="text-center" th:text="1">1</td>
+                <td class="text-left" th:text="${#numbers.formatDecimal(item.price, 0, 2)} + ' ₽'"></td>
+                <td class="text-left" th:text="${#numbers.formatDecimal(item.price, 0, 2)} + ' ₽'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Итого -->
+    <div class="totals-section">
+        <div class="totals-card">
+            <div class="total-row">
+                <span>Стоимость товаров:</span>
+                <span th:text="${#numbers.formatDecimal(order.totalPrice, 0, 2)} + ' ₽'"></span>
+            </div>
+            <div class="total-row">
+                <span>Доставка:</span>
+                <span>0 ₽</span>
+            </div>
+            <div class="total-row">
+                <span>Итого:</span>
+                <span th:text="${#numbers.formatDecimal(order.totalPrice, 0, 2)} + ' ₽'"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопки действий -->
+    <div class="actions-section">
+        <a href="/users/profile" class="btn-action btn-back">
+            <i class="fas fa-arrow-left"></i> Назад в профиль
+        </a>
+        <button class="btn-action btn-cancel" th:if="${order.status == 'pending' or order.status == 'processing'}"
+                onclick="cancelOrder(/*[[${order.id}]]*/)">
+            <i class="fas fa-times"></i> Отменить заказ
+        </button>
+        <button class="btn-action btn-repeat" th:if="${order.status == 'completed'}"
+                onclick="repeatOrder(/*[[${order.id}]]*/)">
+            <i class="fas fa-redo"></i> Повторить заказ
+        </button>
+    </div>
+</div>
+
+<script>
+    function addBackgroundElements() {
+        if (!document.querySelector('.bg-blur-circle')) {
+            const circles = [
+                {className: 'bg-circle-1', size: 600, top: -200, left: -200},
+                {className: 'bg-circle-2', size: 550, bottom: -150, right: -150},
+                {className: 'bg-circle-3', size: 450, top: '60%', left: '10%'},
+                {className: 'bg-circle-4', size: 500, bottom: '20%', right: '20%'}
+            ];
+            circles.forEach(circle => {
+                const div = document.createElement('div');
+                div.className = `bg-blur-circle ${circle.className}`;
+                if (circle.size) div.style.width = `${circle.size}px`;
+                if (circle.size) div.style.height = `${circle.size}px`;
+                if (circle.top) div.style.top = circle.top;
+                if (circle.left) div.style.left = circle.left;
+                if (circle.bottom) div.style.bottom = circle.bottom;
+                if (circle.right) div.style.right = circle.right;
+                document.body.appendChild(div);
+            });
+        }
+        if (!document.querySelector('.soft-glow')) {
+            const glow = document.createElement('div');
+            glow.className = 'soft-glow';
+            document.body.appendChild(glow);
+        }
+        if (!document.querySelector('.stars')) {
+            const stars = document.createElement('div');
+            stars.className = 'stars';
+            stars.id = 'stars';
+            document.body.appendChild(stars);
+        }
+    }
+
+    function createStars() {
+        const container = document.getElementById('stars');
+        if (!container) return;
+        for (let i = 0; i < 80; i++) {
+            const star = document.createElement('div');
+            const rand = Math.random();
+            star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            container.appendChild(star);
+        }
+    }
+
+    function cancelOrder(orderId) {
+        if (confirm('Вы уверены, что хотите отменить этот заказ?')) {
+            fetch(`/orders/cancel/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                }
+            }).then(() => {
+                window.location.reload();
+            }).catch(() => {
+                alert('Ошибка при отмене заказа');
+            });
+        }
+    }
+
+    function repeatOrder(orderId) {
+        fetch(`/orders/repeat/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+            }
+        }).then(() => {
+            window.location.href = '/cart';
+        }).catch(() => {
+            alert('Ошибка при повторении заказа');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        addBackgroundElements();
+        createStars();
+    });
+</script>
+</body>
+</html>

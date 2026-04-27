@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{info/layout}">
+<head>
+    <title>Вопросы и ответы</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div style="max-width: 1200px; margin: 20px auto; padding: 20px;">
+        <a href="/" class="back-button" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(111,240,165,0.3); color: var(--off-white); padding: 10px 20px; border-radius: 30px; text-decoration: none; margin-bottom: 20px;">
+            <i class="fas fa-arrow-left"></i> На главную
+        </a>
+        <div style="margin-bottom: 30px; padding: 30px; background: linear-gradient(135deg, rgba(111,240,165,0.1), rgba(111,240,165,0.05)); border-radius: 24px; border: 1px solid rgba(111,240,165,0.2); text-align: center;">
+            <h1 style="font-size: 2rem; display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--white);"><i class="fas fa-question-circle"></i> Вопросы и ответы</h1>
+            <p style="color: var(--off-white); opacity: 0.8;">Ответы на часто задаваемые вопросы</p>
+        </div>
+        <div style="background: rgba(37,39,43,0.85); backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid rgba(111,240,165,0.2); padding: 40px;">
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: var(--neon-green); font-size: 1.2rem; margin-bottom: 10px;"><i class="fas fa-question-circle"></i> Как оформить заказ?</h3>
+                <p style="color: var(--off-white); line-height: 1.6;">Добавьте товары в корзину, перейдите в корзину, нажмите «Оформить заказ», заполните контактные данные и выберите способ доставки и оплаты. После подтверждения заказа вам придет письмо на указанную почту.</p>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: var(--neon-green); font-size: 1.2rem; margin-bottom: 10px;"><i class="fas fa-clock"></i> Сколько времени занимает доставка?</h3>
+                <p style="color: var(--off-white); line-height: 1.6;">По Москве и Московской области — 1-2 рабочих дня. По регионам России — от 2 до 7 рабочих дней в зависимости от удаленности и выбранного способа доставки.</p>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: var(--neon-green); font-size: 1.2rem; margin-bottom: 10px;"><i class="fas fa-credit-card"></i> Какие способы оплаты доступны?</h3>
+                <p style="color: var(--off-white); line-height: 1.6;">Вы можете оплатить заказ банковской картой на сайте, наличными курьеру, по СБП (QR-код) или по безналичному расчету для юридических лиц.</p>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: var(--neon-green); font-size: 1.2rem; margin-bottom: 10px;"><i class="fas fa-exchange-alt"></i> Как вернуть товар?</h3>
+                <p style="color: var(--off-white); line-height: 1.6;">Свяжитесь с нашей службой поддержки по телефону или email, заполните заявление на возврат и отправьте товар по указанному адресу. Подробнее в разделе «Возврат товара».</p>
+            </div>
+            <div>
+                <h3 style="color: var(--neon-green); font-size: 1.2rem; margin-bottom: 10px;"><i class="fas fa-shield-alt"></i> Есть ли гарантия на товары?</h3>
+                <p style="color: var(--off-white); line-height: 1.6;">Да, на все товары предоставляется гарантия производителя от 3 до 24 месяцев в зависимости от категории товара.</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

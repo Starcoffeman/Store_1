@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Категории | ТехноШок</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+
+    <style>
+        body {
+            background: var(--night-dark);
+            min-height: 100vh;
+        }
+
+        .categories-container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: rgba(37, 39, 43, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            border: 1px solid rgba(111, 240, 165, 0.2);
+            padding: 30px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .categories-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .categories-header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            background: linear-gradient(135deg, var(--white), var(--neon-green));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .categories-header h1 i {
+            color: var(--neon-green);
+            background: none;
+            -webkit-background-clip: unset;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
+            color: var(--night-dark);
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-neon);
+            color: var(--night-dark);
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--off-white);
+            border: 1px solid rgba(111, 240, 165, 0.3);
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back:hover {
+            background: rgba(111, 240, 165, 0.1);
+            color: var(--neon-green);
+            transform: translateX(3px);
+        }
+
+        .table {
+            color: var(--off-white);
+            margin-bottom: 25px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table thead {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .table thead th {
+            color: var(--neon-green);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(111, 240, 165, 0.3);
+            padding: 12px;
+        }
+
+        .table tbody tr {
+            transition: all var(--transition-fast);
+            border-bottom: 1px solid rgba(111, 240, 165, 0.1);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(111, 240, 165, 0.05);
+        }
+
+        .table td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+
+        .btn-edit {
+            background: rgba(111, 240, 165, 0.1);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-right: 8px;
+        }
+
+        .btn-edit:hover {
+            background: var(--neon-green);
+            color: var(--night-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-delete {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-delete:hover {
+            background: var(--danger);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .actions-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--off-white);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--neon-green);
+            opacity: 0.5;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .categories-container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .categories-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table {
+                font-size: 0.85rem;
+            }
+
+            .table td, .table th {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Фоновые элементы -->
+<div class="bg-blur-circle bg-circle-1"></div>
+<div class="bg-blur-circle bg-circle-2"></div>
+<div class="bg-blur-circle bg-circle-3"></div>
+<div class="bg-blur-circle bg-circle-4"></div>
+<div class="stars" id="stars"></div>
+<div class="soft-glow"></div>
+
+<!-- Верхняя панель -->
+<div class="top-bar">
+    <div class="container">
+        <div class="city-selector">
+            <i class="fas fa-map-marker-alt"></i> Москва
+            <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
+        </div>
+        <div class="phone-number">
+            <i class="fas fa-phone-alt"></i> +7 (495) 780-20-02
+        </div>
+    </div>
+</div>
+
+<!-- Основной хедер -->
+<div class="main-header">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <a href="/" class="logo">
+            <div class="logo-icon"><i class="fas fa-laptop-code"></i></div>
+            <span>ТехноШок</span>
+        </a>
+
+        <div class="search-wrapper">
+            <input type="text" class="search-input" placeholder="Поиск товаров, брендов и категорий..." id="searchInput">
+            <button class="search-button" onclick="searchProducts()">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <div class="header-actions">
+            <a href="/favorites" class="header-action">
+                <i class="fas fa-heart"></i>
+                <span>Избранное</span>
+                <span class="favorites-badge" id="favoritesCount">0</span>
+            </a>
+            <a href="/cart" class="header-action">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Корзина</span>
+                <span class="cart-badge" id="cartCount">0</span>
+            </a>
+            <a sec:authorize="isAuthenticated()" href="/users/profile" class="header-action">
+                <i class="fas fa-user"></i>
+                <span>Профиль</span>
+            </a>
+            <a sec:authorize="!isAuthenticated()" href="/login" class="header-action">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Войти</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Категории товаров -->
+<div class="categories-section">
+    <div class="container">
+        <div class="categories-scroll">
+            <a href="/products/catalog" class="category-item">
+                <i class="fas fa-th-large"></i>
+                <span>Все товары</span>
+            </a>
+            <a href="/category/notebooks" class="category-item">
+                <i class="fas fa-laptop"></i>
+                <span>Ноутбуки</span>
+            </a>
+            <a href="/category/smartphones" class="category-item">
+                <i class="fas fa-mobile-alt"></i>
+                <span>Смартфоны</span>
+            </a>
+            <a href="/category/tv" class="category-item">
+                <i class="fas fa-tv"></i>
+                <span>Телевизоры</span>
+            </a>
+            <a href="/category/audio" class="category-item">
+                <i class="fas fa-headphones"></i>
+                <span>Аудиотехника</span>
+            </a>
+            <a href="/category/gaming" class="category-item">
+                <i class="fas fa-gamepad"></i>
+                <span>Игры</span>
+            </a>
+            <a href="/category/accessories" class="category-item">
+                <i class="fas fa-mouse"></i>
+                <span>Аксессуары</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="categories-container">
+    <div class="categories-header">
+        <h1>
+            <i class="fas fa-tags"></i>
+            Управление категориями
+        </h1>
+        <div style="display: flex; gap: 10px;">
+            <a href="/category/add" class="btn-add">
+                <i class="fas fa-plus-circle"></i> Добавить категорию
+            </a>
+            <a href="/admin" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${categories != null and !categories.isEmpty()}">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название категории</th>
+                    <th>Действия</th>
+                </thead>
+                <tbody>
+                <tr th:each="category: ${categories}">
+                    <td th:text="${category.id}">1</td>
+                    <td>
+                        <i class="fas fa-folder-open" style="color: var(--neon-green); margin-right: 8px;"></i>
+                        <span th:text="${category.name}">Название</span>
+                    </td>
+                    <td>
+                        <div class="actions-group">
+                            <a th:href="@{'/category/edit/' + ${category.id}}" class="btn-edit">
+                                <i class="fas fa-edit"></i> Редактировать
+                            </a>
+                            <a th:href="@{'/category/delete/' + ${category.id}}"
+                               class="btn-delete"
+                               onclick="return confirm('Вы уверены, что хотите удалить категорию?')">
+                                <i class="fas fa-trash-alt"></i> Удалить
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${categories == null or categories.isEmpty()}" class="empty-state">
+        <i class="fas fa-folder-open"></i>
+        <h3>Нет категорий</h3>
+        <p>Нажмите "Добавить категорию", чтобы создать первую категорию</p>
+    </div>
+</div>
+
+<!-- Футер -->
+<div class="footer">
+    <div class="container">
+        <div class="footer-grid-new">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon"><i class="fas fa-laptop-code"></i></div>
+                    <span>ТехноШок</span>
+                </div>
+                <p class="footer-about">Интернет-магазин электроники с 2010 года. Широкий ассортимент, быстрая доставка, гарантия качества.</p>
+                <div class="social-links-new">
+                    <a href="#" class="social-link"><i class="fab fa-vk"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Покупателям</h4>
+                <a href="/delivery">Доставка и оплата</a>
+                <a href="/returns">Возврат товара</a>
+                <a href="/warranty">Гарантия</a>
+                <a href="/faq">Вопросы и ответы</a>
+            </div>
+            <div class="footer-section">
+                <h4>Компания</h4>
+                <a href="/about">О нас</a>
+                <a href="/contacts">Контакты</a>
+                <a href="/blog">Блог</a>
+                <a href="/vacancies">Вакансии</a>
+            </div>
+            <div class="footer-section footer-contact">
+                <h4>Контакты</h4>
+                <p><i class="fas fa-phone"></i> +7 (495) 780-20-02</p>
+                <p><i class="fas fa-envelope"></i> info@techstore.ru</p>
+                <p><i class="fas fa-clock"></i> Ежедневно 9:00-21:00</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 ТехноШок. Все права защищены.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCsrfToken() {
+        return document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+    }
+
+    function getCsrfHeader() {
+        return document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+    }
+
+    function searchProducts() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (query) {
+            window.location.href = '/category/search?query=' + encodeURIComponent(query);
+        }
+    }
+
+    function updateCartCount() {
+        fetch('/cart/count')
+            .then(response => response.json())
+            .then(data => {
+                const cartCount = document.getElementById('cartCount');
+                if (cartCount) cartCount.textContent = data.count || 0;
+            })
+            .catch(error => console.error('Ошибка:', error));
+    }
+
+    function updateFavoritesCount() {
+        fetch('/favorites/count')
+            .then(response => response.json())
+            .then(count => {
+                const favoritesCount = document.getElementById('favoritesCount');
+                if (favoritesCount) favoritesCount.textContent = count;
+            })
+            .catch(error => console.error('Ошибка:', error));
+    }
+
+    function addBackgroundElements() {
+        if (!document.querySelector('.bg-blur-circle')) {
+            const circles = [
+                { className: 'bg-circle-1', size: 600, top: -200, left: -200 },
+                { className: 'bg-circle-2', size: 550, bottom: -150, right: -150 },
+                { className: 'bg-circle-3', size: 450, top: '60%', left: '10%' },
+                { className: 'bg-circle-4', size: 500, bottom: '20%', right: '20%' }
+            ];
+            circles.forEach(circle => {
+                const div = document.createElement('div');
+                div.className = `bg-blur-circle ${circle.className}`;
+                if (circle.size) div.style.width = `${circle.size}px`;
+                if (circle.size) div.style.height = `${circle.size}px`;
+                if (circle.top) div.style.top = circle.top;
+                if (circle.left) div.style.left = circle.left;
+                if (circle.bottom) div.style.bottom = circle.bottom;
+                if (circle.right) div.style.right = circle.right;
+                document.body.appendChild(div);
+            });
+        }
+        if (!document.querySelector('.soft-glow')) {
+            const glow = document.createElement('div');
+            glow.className = 'soft-glow';
+            document.body.appendChild(glow);
+        }
+        if (!document.querySelector('.stars')) {
+            const stars = document.createElement('div');
+            stars.className = 'stars';
+            stars.id = 'stars';
+            document.body.appendChild(stars);
+        }
+    }
+
+    function createStars() {
+        const container = document.getElementById('stars');
+        if (!container) return;
+        for (let i = 0; i < 80; i++) {
+            const star = document.createElement('div');
+            const rand = Math.random();
+            star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            container.appendChild(star);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        addBackgroundElements();
+        createStars();
+        updateCartCount();
+        updateFavoritesCount();
+
+        document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchProducts();
+        });
+    });
+</script>
+</body>
+</html>

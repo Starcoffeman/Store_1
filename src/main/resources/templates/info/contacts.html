@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{info/layout}">
+<head>
+    <title>Контакты</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div style="max-width: 1200px; margin: 20px auto; padding: 20px;">
+        <a href="/" class="back-button" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(111,240,165,0.3); color: var(--off-white); padding: 10px 20px; border-radius: 30px; text-decoration: none; margin-bottom: 20px;">
+            <i class="fas fa-arrow-left"></i> На главную
+        </a>
+        <div style="margin-bottom: 30px; padding: 30px; background: linear-gradient(135deg, rgba(111,240,165,0.1), rgba(111,240,165,0.05)); border-radius: 24px; border: 1px solid rgba(111,240,165,0.2); text-align: center;">
+            <h1 style="font-size: 2rem; display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--white);"><i class="fas fa-address-book"></i> Контакты</h1>
+            <p style="color: var(--off-white); opacity: 0.8;">Свяжитесь с нами любым удобным способом</p>
+        </div>
+        <div style="background: rgba(37,39,43,0.85); backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid rgba(111,240,165,0.2); padding: 40px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 40px;">
+                <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 25px; text-align: center;">
+                    <i class="fas fa-phone-alt" style="font-size: 2.5rem; color: var(--neon-green); margin-bottom: 15px;"></i>
+                    <h3 style="color: var(--white); margin-bottom: 10px;">Телефон</h3>
+                    <p style="color: var(--off-white);">+7 (495) 780-20-02</p>
+                    <p style="color: var(--off-white);">Ежедневно 9:00-21:00</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 25px; text-align: center;">
+                    <i class="fas fa-envelope" style="font-size: 2.5rem; color: var(--neon-green); margin-bottom: 15px;"></i>
+                    <h3 style="color: var(--white); margin-bottom: 10px;">Email</h3>
+                    <p style="color: var(--off-white);">info@techstore.ru</p>
+                    <p style="color: var(--off-white);">support@techstore.ru</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 25px; text-align: center;">
+                    <i class="fab fa-telegram" style="font-size: 2.5rem; color: var(--neon-green); margin-bottom: 15px;"></i>
+                    <h3 style="color: var(--white); margin-bottom: 10px;">Telegram</h3>
+                    <p style="color: var(--off-white);">@techstore_support</p>
+                </div>
+            </div>
+            <div>
+                <h2 style="color: var(--neon-green); font-size: 1.5rem; margin-bottom: 20px;"><i class="fas fa-map-marker-alt"></i> Адрес офиса</h2>
+                <p style="color: var(--off-white); line-height: 1.6;">г. Москва, ул. Технологическая, д. 15, БЦ «ТехноПарк», офис 301</p>
+                <p style="color: var(--off-white); line-height: 1.6;">Ежедневно: 10:00 - 20:00</p>
+                <h3 style="color: var(--white); font-size: 1.2rem; margin: 20px 0 10px;">Реквизиты компании</h3>
+                <p style="color: var(--off-white); line-height: 1.6;">ООО «ТехноШок»<br>ИНН: 7723456789<br>КПП: 770401001<br>ОГРН: 1157746123456<br>Юридический адрес: 121099, г. Москва, ул. Тверская, д. 15</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

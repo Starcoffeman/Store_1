@@ -1,0 +1,9 @@
+GET http://localhost:8080/orders
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.2
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2025-11-24T101442.200.txt
+
+###
+

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<title>Игры | ТехноШок</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+	<link rel="stylesheet" th:href="@{/css/main.css}"/>
+	<style>
+		body { background: var(--night-dark); min-height: 100vh; }
+		.catalog-wrapper { max-width: 1400px; margin: 0 auto; padding: 20px; }
+		.category-header { margin-bottom: 30px; border-radius: 24px; padding: 40px; background: linear-gradient(135deg, rgba(111,240,165,0.1), rgba(111,240,165,0.05)); border: 1px solid rgba(111,240,165,0.2); }
+		.category-header h1 { font-size: 2.5rem; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+		.category-header h1 i { color: var(--neon-green); font-size: 2rem; }
+		.category-header p { color: var(--off-white); opacity: 0.8; font-size: 1rem; }
+		.category-stats { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+		.category-stat { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 8px 16px; font-size: 13px; }
+		.category-stat i { color: var(--neon-green); margin-right: 6px; }
+		.filters-section { background: rgba(37,39,43,0.85); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(111,240,165,0.2); padding: 25px; margin-bottom: 30px; }
+		.filters-title { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(111,240,165,0.2); }
+		.filters-title i { color: var(--neon-green); font-size: 1.2rem; }
+		.filters-title span { font-weight: 600; color: var(--white); font-size: 1.1rem; }
+		.filters-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+		.filter-group { display: flex; flex-direction: column; gap: 8px; }
+		.filter-group label { font-size: 12px; color: var(--off-white); font-weight: 500; text-transform: uppercase; }
+		.filter-group label i { margin-right: 6px; color: var(--neon-green); }
+		.filter-group select, .filter-group input { background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); border-radius: 10px; padding: 10px 12px; color: var(--white); font-size: 14px; cursor: pointer; }
+		.price-range { display: flex; gap: 10px; align-items: center; }
+		.price-input-wrapper { position: relative; flex: 1; }
+		.price-input-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--neon-green); font-size: 12px; }
+		.price-input-wrapper input { width: 100%; padding: 10px 12px 10px 30px; }
+		.brands-filter { display: flex; flex-wrap: wrap; gap: 8px; max-height: 120px; overflow-y: auto; padding: 5px; }
+		.brands-filter::-webkit-scrollbar { width: 4px; }
+		.brands-filter::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 4px; }
+		.brands-filter::-webkit-scrollbar-thumb { background: var(--neon-green); border-radius: 4px; }
+		.brand-checkbox { display: flex; align-items: center; gap: 8px; background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); border-radius: 30px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+		.brand-checkbox:hover { border-color: var(--neon-green); background: rgba(111,240,165,0.15); }
+		.brand-checkbox input { margin: 0; width: 16px; height: 16px; accent-color: var(--neon-green); }
+		.specs-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+		.spec-checkbox { display: flex; align-items: center; gap: 8px; background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); border-radius: 30px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+		.spec-checkbox:hover { border-color: var(--neon-green); background: rgba(111,240,165,0.15); }
+		.spec-checkbox input { margin: 0; width: 16px; height: 16px; accent-color: var(--neon-green); }
+		.rating-filter { display: flex; gap: 8px; flex-wrap: wrap; }
+		.rating-option { display: flex; align-items: center; gap: 5px; background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); border-radius: 30px; padding: 6px 14px; cursor: pointer; }
+		.rating-option.active { background: var(--neon-green); border-color: var(--neon-green); }
+		.rating-option.active span { color: var(--night-dark); }
+		.rating-stars-small { color: #ffc107; font-size: 11px; letter-spacing: 1px; }
+		.filter-actions { display: flex; gap: 10px; align-items: flex-end; grid-column: span 4; }
+		.btn-filter { background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark)); color: var(--night-dark); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
+		.btn-reset { background: rgba(255,255,255,0.1); color: var(--off-white); border: 1px solid rgba(111,240,165,0.3); border-radius: 10px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
+		.results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+		.results-count { color: var(--off-white); font-size: 14px; }
+		.results-count span { color: var(--neon-green); font-weight: bold; font-size: 1.2rem; }
+		.sort-select { background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); border-radius: 10px; padding: 8px 15px; color: var(--white); font-size: 13px; cursor: pointer; }
+		.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+		.product-card { background: rgba(37,39,43,0.9); border-radius: 16px; padding: 20px; cursor: pointer; transition: all var(--transition-normal); border: 1px solid rgba(111,240,165,0.2); position: relative; }
+		.product-card:hover { transform: translateY(-5px); border-color: var(--neon-green); box-shadow: var(--shadow-neon); }
+		.product-badge { position: absolute; top: 15px; left: 15px; background: var(--neon-green); color: var(--night-dark); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; z-index: 1; }
+		.product-card img { width: 100%; height: 200px; object-fit: contain; margin-bottom: 15px; }
+		.product-brand { font-size: 11px; color: var(--neon-green); margin-bottom: 5px; }
+		.product-title { font-size: 1rem; margin: 10px 0; height: 45px; overflow: hidden; color: var(--white); font-weight: 500; }
+		.product-specs { display: flex; gap: 10px; font-size: 11px; color: var(--off-white); opacity: 0.7; margin: 8px 0; flex-wrap: wrap; }
+		.product-specs span { display: flex; align-items: center; gap: 4px; }
+		.product-specs i { font-size: 10px; color: var(--neon-green); }
+		.product-rating { color: #ffc107; margin: 10px 0; font-size: 12px; }
+		.product-price { font-size: 1.2rem; font-weight: bold; color: var(--neon-green); margin: 10px 0; }
+		.product-old-price { font-size: 0.85rem; text-decoration: line-through; opacity: 0.6; margin-left: 8px; color: var(--off-white); }
+		.product-card .btn-success { width: 100%; margin-top: 10px; padding: 10px; font-size: 12px; }
+		.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; flex-wrap: wrap; }
+		.page-link { background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); color: var(--off-white); padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 14px; }
+		.page-link.active { background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark)); color: var(--night-dark); }
+		.empty-state { text-align: center; padding: 80px 20px; color: var(--off-white); }
+		.empty-state i { font-size: 4rem; color: var(--neon-green); opacity: 0.5; margin-bottom: 20px; }
+		@media (max-width: 1200px) { .filters-grid { grid-template-columns: repeat(2, 1fr); } .filter-actions { grid-column: span 2; } }
+		@media (max-width: 768px) { .filters-grid { grid-template-columns: 1fr; } .filter-actions { grid-column: span 1; flex-direction: column; } .category-header { padding: 25px; } .products-grid { grid-template-columns: 1fr; } }
+	</style>
+</head>
+<body>
+<div class="bg-blur-circle bg-circle-1"></div><div class="bg-blur-circle bg-circle-2"></div>
+<div class="bg-blur-circle bg-circle-3"></div><div class="bg-blur-circle bg-circle-4"></div>
+<div class="stars" id="stars"></div><div class="soft-glow"></div>
+
+<div class="top-bar"><div class="container"><div class="city-selector"><i class="fas fa-map-marker-alt"></i> Москва <i class="fas fa-chevron-down" style="font-size:10px;"></i></div><div class="phone-number"><i class="fas fa-phone-alt"></i> +7 (495) 780-20-02</div></div></div>
+
+<div class="main-header"><div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;">
+	<a href="/" class="logo"><div class="logo-icon"><i class="fas fa-laptop-code"></i></div><span>ТехноШок</span></a>
+	<div class="search-wrapper"><input type="text" class="search-input" placeholder="Поиск..." id="searchInput"><button class="search-button" onclick="searchProducts()"><i class="fas fa-search"></i></button></div>
+	<div class="header-actions"><a href="/favorites" class="header-action"><i class="fas fa-heart"></i><span>Избранное</span><span class="favorites-badge" id="favoritesCount">0</span></a><a href="/cart" class="header-action"><i class="fas fa-shopping-cart"></i><span>Корзина</span><span class="cart-badge" id="cartCount">0</span></a><a sec:authorize="isAuthenticated()" href="/users/profile" class="header-action"><i class="fas fa-user"></i><span>Профиль</span></a><a sec:authorize="!isAuthenticated()" href="/login" class="header-action"><i class="fas fa-sign-in-alt"></i><span>Войти</span></a></div>
+</div></div>
+
+<div class="categories-section"><div class="container"><div class="categories-scroll">
+	<a href="/products/catalog" class="category-item"><i class="fas fa-th-large"></i><span>Все товары</span></a>
+	<a href="/category/notebooks" class="category-item"><i class="fas fa-laptop"></i><span>Ноутбуки</span></a>
+	<a href="/category/smartphones" class="category-item"><i class="fas fa-mobile-alt"></i><span>Смартфоны</span></a>
+	<a href="/category/tv" class="category-item"><i class="fas fa-tv"></i><span>Телевизоры</span></a>
+	<a href="/category/audio" class="category-item"><i class="fas fa-headphones"></i><span>Аудиотехника</span></a>
+	<a href="/category/gaming" class="category-item"><i class="fas fa-gamepad"></i><span>Игры</span></a>
+	<a href="/category/accessories" class="category-item"><i class="fas fa-mouse"></i><span>Аксессуары</span></a>
+</div></div></div>
+
+<div class="catalog-wrapper">
+	<div class="category-header"><h1><i class="fas fa-gamepad"></i> Игры</h1><p>Цифровые игры, ключи активации и подписки для PC, PlayStation, Xbox и Nintendo</p>
+		<div class="category-stats"><div class="category-stat"><i class="fab fa-steam"></i> Steam</div><div class="category-stat"><i class="fab fa-playstation"></i> PlayStation</div><div class="category-stat"><i class="fab fa-xbox"></i> Xbox</div><div class="category-stat"><i class="fab fa-nintendo-switch"></i> Nintendo</div></div>
+	</div>
+
+	<div class="filters-section"><div class="filters-title"><i class="fas fa-sliders-h"></i><span>Фильтрация игр</span></div>
+		<div class="filters-grid">
+			<div class="filter-group"><label><i class="fas fa-trademark"></i> Бренд/Издатель</label>
+				<div class="brands-filter" id="brandsFilter">
+					<div th:each="brand : ${brands}" class="brand-checkbox" onclick="toggleBrandCheckbox(this)"><input type="checkbox" th:value="${brand}" onchange="event.stopPropagation(); applyFilters()"><span th:text="${brand}">Бренд</span></div>
+				</div>
+			</div>
+			<div class="filter-group"><label><i class="fas fa-ruble-sign"></i> Цена</label>
+				<div class="price-range"><div class="price-input-wrapper"><i class="fas fa-ruble-sign"></i><input type="number" id="priceMin" placeholder="от" value="0"></div><span class="price-range-separator">—</span><div class="price-input-wrapper"><i class="fas fa-ruble-sign"></i><input type="number" id="priceMax" placeholder="до"></div></div>
+			</div>
+			<div class="filter-group"><label><i class="fas fa-gamepad"></i> Платформа</label>
+				<select id="platformFilter"><option value="all">Все платформы</option><option value="PC">PC (Steam/Epic)</option><option value="PlayStation">PlayStation</option><option value="Xbox">Xbox</option><option value="Nintendo">Nintendo Switch</option></select>
+			</div>
+			<div class="filter-group"><label><i class="fas fa-tag"></i> Жанр</label>
+				<div class="specs-filter"><div class="spec-checkbox" onclick="toggleSpecCheckbox(this,'action')"><input type="checkbox" value="action"><span>Экшн</span></div><div class="spec-checkbox" onclick="toggleSpecCheckbox(this,'rpg')"><input type="checkbox" value="rpg"><span>RPG</span></div><div class="spec-checkbox" onclick="toggleSpecCheckbox(this,'shooter')"><input type="checkbox" value="shooter"><span>Шутер</span></div><div class="spec-checkbox" onclick="toggleSpecCheckbox(this,'strategy')"><input type="checkbox" value="strategy"><span>Стратегия</span></div><div class="spec-checkbox" onclick="toggleSpecCheckbox(this,'sport')"><input type="checkbox" value="sport"><span>Спорт</span></div><div class="spec-checkbox" onclick="toggleSpecCheckbox(this,'racing')"><input type="checkbox" value="racing"><span>Гонки</span></div></div>
+			</div>
+			<div class="filter-group"><label><i class="fas fa-star"></i> Рейтинг</label>
+				<div class="rating-filter"><div class="rating-option active" data-rating="0" onclick="selectRating(0)"><span>Любой</span></div><div class="rating-option" data-rating="4" onclick="selectRating(4)"><span class="rating-stars-small">★★★★</span><span>+</span></div><div class="rating-option" data-rating="3" onclick="selectRating(3)"><span class="rating-stars-small">★★★</span><span>+</span></div></div>
+			</div>
+			<div class="filter-group"><label><i class="fas fa-check-circle"></i> Наличие</label><select id="stockFilter"><option value="all">Все товары</option><option value="in_stock">В наличии</option><option value="out_of_stock">Нет в наличии</option></select></div>
+			<div class="filter-actions"><button class="btn-filter" onclick="applyFilters()"><i class="fas fa-search"></i> Применить</button><button class="btn-reset" onclick="resetFilters()"><i class="fas fa-undo-alt"></i> Сбросить</button></div>
+		</div>
+	</div>
+
+	<div class="results-header"><div class="results-count">Найдено <span id="productsCount">0</span> игр</div>
+		<select id="sortSelect" class="sort-select" onchange="sortProducts()"><option value="default">Сортировка: По умолчанию</option><option value="price_asc">Цена: по возрастанию</option><option value="price_desc">Цена: по убыванию</option><option value="rating_desc">Рейтинг: по убыванию</option><option value="name_asc">Название: А-Я</option></select>
+	</div>
+
+	<div class="products-grid" id="productsGrid"></div>
+	<div class="pagination" id="pagination"></div>
+	<div id="emptyState" class="empty-state" style="display:none;"><i class="fas fa-gamepad"></i><h3>Игры не найдены</h3><p>Попробуйте изменить параметры фильтрации</p></div>
+</div>
+
+<script th:inline="javascript">
+	const productsFromServer = /*[[${products}]]*/ [];
+	const brandsFromServer = /*[[${brands}]]*/ [];
+	let allProducts = [], filteredProducts = [], currentPage = 1, itemsPerPage = 12, selectedRating = 0, selectedGenres = new Set(), selectedBrands = new Set();
+
+	function extractPlatformFromName(name){ if(!name) return 'PC'; const l=name.toLowerCase(); if(l.includes('playstation')||l.includes('ps4')||l.includes('ps5')) return 'PlayStation'; if(l.includes('xbox')) return 'Xbox'; if(l.includes('nintendo')||l.includes('switch')) return 'Nintendo'; return 'PC'; }
+	function extractGenreFromName(name){ const l=name.toLowerCase(); if(l.includes('shooter')||l.includes('call of duty')) return 'shooter'; if(l.includes('rpg')||l.includes('final fantasy')) return 'rpg'; if(l.includes('strategy')||l.includes('civilization')) return 'strategy'; if(l.includes('sport')||l.includes('fifa')) return 'sport'; if(l.includes('racing')||l.includes('need for speed')) return 'racing'; return 'action'; }
+	function initProducts(){ if(productsFromServer&&productsFromServer.length>0){ allProducts=productsFromServer.map(p=>({id:p.id,name:p.name,price:p.price,oldPrice:p.oldPrice,rating:p.averageRating||0,image:p.fileUrl||'/images/game-placeholder.png',brand:p.brand||'Другое',platform:p.platform||extractPlatformFromName(p.name),genre:p.genre||extractGenreFromName(p.name),stock:p.stock!==undefined?p.stock:Math.floor(Math.random()*20)+1,badge:p.badge||(p.oldPrice?`-${Math.round((1-p.price/p.oldPrice)*100)}%`:'')})); } filteredProducts=[...allProducts]; renderProducts(); updateProductsCount(); }
+	function toggleBrandCheckbox(el){ const cb=el.querySelector('input'); cb.checked=!cb.checked; applyFilters(); }
+	function toggleSpecCheckbox(el){ const cb=el.querySelector('input'); cb.checked=!cb.checked; applyFilters(); }
+	function selectRating(r){ selectedRating=r; document.querySelectorAll('.rating-option').forEach(opt=>opt.classList.remove('active')); document.querySelector(`.rating-option[data-rating="${r}"]`).classList.add('active'); applyFilters(); }
+	function renderProducts(){ const c=document.getElementById('productsGrid'), e=document.getElementById('emptyState'); if(filteredProducts.length===0){ e.style.display='block'; c.innerHTML=''; document.getElementById('pagination').innerHTML=''; return; } e.style.display='none'; const start=(currentPage-1)*itemsPerPage, end=start+itemsPerPage, pageProducts=filteredProducts.slice(start,end); c.innerHTML=pageProducts.map(p=>`<div class="product-card" onclick="window.location.href='/products/${p.id}'"><div class="product-badge">${p.badge||'Игра'}</div><img src="${p.image}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23252529\'/%3E%3Ctext x=\'100\' y=\'110\' text-anchor=\'middle\' fill=\'%236FF0A5\' font-size=\'14\'%3EGame%3C/text%3E%3C/svg%3E'"><div class="product-brand">${p.brand}</div><h3 class="product-title">${p.name}</h3><div class="product-specs"><span><i class="fas ${p.platform==='PC'?'fa-laptop':(p.platform==='PlayStation'?'fab fa-playstation':(p.platform==='Xbox'?'fab fa-xbox':'fab fa-nintendo-switch'))}"></i> ${p.platform}</span><span><i class="fas fa-tag"></i> ${p.genre}</span></div><div class="product-rating">${'★'.repeat(Math.floor(p.rating))}${'☆'.repeat(5-Math.floor(p.rating))}<span style="margin-left:5px;">${p.rating.toFixed(1)}</span></div><div class="product-price">${p.price.toLocaleString()} ₽${p.oldPrice?`<span class="product-old-price">${p.oldPrice.toLocaleString()} ₽</span>`:''}</div><button class="btn btn-success" onclick="event.stopPropagation(); addToCart(${p.id})"><i class="fas fa-shopping-cart"></i> Купить</button></div>`).join(); renderPagination(); }
+	function renderPagination(){ const tp=Math.ceil(filteredProducts.length/itemsPerPage), pc=document.getElementById('pagination'); if(tp<=1){ pc.innerHTML=''; return; } let html=''; if(currentPage>1) html+=`<a href="#" class="page-link" onclick="changePage(${currentPage-1});return false;"><i class="fas fa-chevron-left"></i></a>`; for(let i=1;i<=tp;i++){ if(i===1||i===tp||(i>=currentPage-1&&i<=currentPage+1)) html+=`<a href="#" class="page-link ${i===currentPage?'active':''}" onclick="changePage(${i});return false;">${i}</a>`; else if(i===currentPage-2||i===currentPage+2) html+=`<span class="page-link disabled">...</span>`; } if(currentPage<tp) html+=`<a href="#" class="page-link" onclick="changePage(${currentPage+1});return false;"><i class="fas fa-chevron-right"></i></a>`; pc.innerHTML=html; }
+	function changePage(p){ currentPage=p; renderProducts(); window.scrollTo({top:0,behavior:'smooth'}); }
+	function applyFilters(){ const platform=document.getElementById('platformFilter').value, priceMin=parseFloat(document.getElementById('priceMin').value)||0, priceMax=parseFloat(document.getElementById('priceMax').value)||Infinity, stock=document.getElementById('stockFilter').value; selectedGenres.clear(); document.querySelectorAll('.spec-checkbox input:checked').forEach(cb=>selectedGenres.add(cb.value)); selectedBrands.clear(); document.querySelectorAll('.brand-checkbox input:checked').forEach(cb=>selectedBrands.add(cb.value)); filteredProducts=allProducts.filter(p=>{ if(selectedBrands.size>0&&!selectedBrands.has(p.brand)) return false; if(platform!=='all'&&p.platform!==platform) return false; if(p.price<priceMin||p.price>priceMax) return false; if(selectedGenres.size>0&&!selectedGenres.has(p.genre)) return false; if(selectedRating>0&&p.rating<selectedRating) return false; if(stock==='in_stock'&&p.stock<=0) return false; if(stock==='out_of_stock'&&p.stock>0) return false; return true; }); applySort(); currentPage=1; renderProducts(); updateProductsCount(); }
+	function applySort(){ const sv=document.getElementById('sortSelect').value; if(sv==='price_asc') filteredProducts.sort((a,b)=>a.price-b.price); else if(sv==='price_desc') filteredProducts.sort((a,b)=>b.price-a.price); else if(sv==='rating_desc') filteredProducts.sort((a,b)=>b.rating-a.rating); else if(sv==='name_asc') filteredProducts.sort((a,b)=>a.name.localeCompare(b.name)); }
+	function sortProducts(){ applySort(); currentPage=1; renderProducts(); }
+	function resetFilters(){ document.getElementById('platformFilter').value='all'; document.getElementById('priceMin').value='0'; document.getElementById('priceMax').value=''; document.getElementById('stockFilter').value='all'; selectedRating=0; document.querySelectorAll('.rating-option').forEach(opt=>opt.classList.remove('active')); document.querySelector('.rating-option[data-rating="0"]').classList.add('active'); document.querySelectorAll('.spec-checkbox input').forEach(cb=>cb.checked=false); document.querySelectorAll('.brand-checkbox input').forEach(cb=>cb.checked=false); selectedGenres.clear(); selectedBrands.clear(); filteredProducts=[...allProducts]; currentPage=1; renderProducts(); updateProductsCount(); }
+	function updateProductsCount(){ document.getElementById('productsCount').textContent=filteredProducts.length; }
+	function addToCart(pid){ const p=allProducts.find(p=>p.id===pid); if(p){ let cart=JSON.parse(localStorage.getItem('cart')||'[]'); cart.push({id:p.id,name:p.name,price:p.price}); localStorage.setItem('cart',JSON.stringify(cart)); const btn=event.target.closest('button'), ot=btn.innerHTML; btn.innerHTML='<i class="fas fa-check"></i> Добавлено!'; setTimeout(()=>btn.innerHTML=ot,1500); } }
+	function searchProducts(){ const q=document.getElementById('searchInput').value.trim(); if(q) window.location.href='/category/search?query='+encodeURIComponent(q); }
+	function addBackgroundElements(){ if(!document.querySelector('.bg-blur-circle')){ const circles=[{className:'bg-circle-1',size:600,top:-200,left:-200},{className:'bg-circle-2',size:550,bottom:-150,right:-150},{className:'bg-circle-3',size:450,top:'60%',left:'10%'},{className:'bg-circle-4',size:500,bottom:'20%',right:'20%'}]; circles.forEach(c=>{ const d=document.createElement('div'); d.className=`bg-blur-circle ${c.className}`; if(c.size)d.style.width=`${c.size}px`; if(c.size)d.style.height=`${c.size}px`; if(c.top)d.style.top=c.top; if(c.left)d.style.left=c.left; if(c.bottom)d.style.bottom=c.bottom; if(c.right)d.style.right=c.right; document.body.appendChild(d); }); } if(!document.querySelector('.soft-glow')){ const g=document.createElement('div'); g.className='soft-glow'; document.body.appendChild(g); } if(!document.querySelector('.stars')){ const s=document.createElement('div'); s.className='stars'; s.id='stars'; document.body.appendChild(s); } }
+	function createStars(){ const c=document.getElementById('stars'); if(!c) return; for(let i=0;i<80;i++){ const s=document.createElement('div'), r=Math.random(); s.className=r<0.6?'star':(r<0.9?'star star-medium':'star star-large'); s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%'; s.style.animationDelay=Math.random()*5+'s'; c.appendChild(s); } }
+	document.addEventListener('DOMContentLoaded',()=>{ addBackgroundElements(); createStars(); initProducts(); document.getElementById('searchInput')?.addEventListener('keypress',e=>{ if(e.key==='Enter') searchProducts(); }); });
+</script>
+</body>
+</html>

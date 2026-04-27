@@ -1,0 +1,25 @@
+package org.example.repository;
+
+import org.example.model.Review;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface ReviewRepository extends JpaRepository<Review, Integer> {
+
+    List<Review> findByUserId(Integer userId);
+
+    List<Review> findByProductId(Integer productId);
+
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.product.id = :productId")
+    Double findAverageRatingByProductId(@Param("productId") Integer productId);
+
+    // Для обратной совместимости со старым кодом
+    default List<Review> findByProductID(Integer productId) {
+        return findByProductId(productId);
+    }
+}

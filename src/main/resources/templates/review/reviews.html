@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Отзывы | TechStore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+
+    <style>
+        body {
+            background: var(--night-dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .reviews-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(37, 39, 43, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            border: 1px solid rgba(111, 240, 165, 0.2);
+            padding: 30px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .reviews-header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            background: linear-gradient(135deg, var(--white), var(--neon-green));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reviews-header h1 i {
+            color: var(--neon-green);
+            background: none;
+            -webkit-background-clip: unset;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
+            color: var(--night-dark);
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-neon);
+            color: var(--night-dark);
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--off-white);
+            border: 1px solid rgba(111, 240, 165, 0.3);
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back:hover {
+            background: rgba(111, 240, 165, 0.1);
+            color: var(--neon-green);
+            transform: translateX(3px);
+        }
+
+        .table {
+            color: var(--off-white);
+            margin-bottom: 25px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table thead {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .table thead th {
+            color: var(--neon-green);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(111, 240, 165, 0.3);
+            padding: 12px;
+        }
+
+        .table tbody tr {
+            transition: all var(--transition-fast);
+            border-bottom: 1px solid rgba(111, 240, 165, 0.1);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(111, 240, 165, 0.05);
+        }
+
+        .table td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 0.9rem;
+        }
+
+        .btn-edit {
+            background: rgba(111, 240, 165, 0.1);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-right: 8px;
+        }
+
+        .btn-edit:hover {
+            background: var(--neon-green);
+            color: var(--night-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-delete {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-delete:hover {
+            background: var(--danger);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .actions-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .footer-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--off-white);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--neon-green);
+            opacity: 0.5;
+            margin-bottom: 15px;
+        }
+
+        .review-comment {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 768px) {
+            .reviews-container {
+                padding: 20px;
+            }
+
+            .reviews-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table {
+                font-size: 0.85rem;
+            }
+
+            .table td, .table th {
+                padding: 8px;
+            }
+
+            .review-comment {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="reviews-container">
+    <div class="reviews-header">
+        <h1>
+            <i class="fas fa-star"></i>
+            Управление отзывами
+        </h1>
+        <div style="display: flex; gap: 10px;">
+            <a href="/reviews/add" class="btn-add">
+                <i class="fas fa-plus-circle"></i> Добавить отзыв
+            </a>
+            <a href="/admin" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${listReviews != null and !listReviews.isEmpty()}">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Пользователь</th>
+                    <th>Товар</th>
+                    <th>Рейтинг</th>
+                    <th>Комментарий</th>
+                    <th>Дата</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="review: ${listReviews}">
+                    <td th:text="${review.id}">1</td>
+                    <td th:text="${review.userID}">Пользователь</td>
+                    <td th:text="${review.productID}">Товар</td>
+                    <td>
+                        <div class="rating-stars">
+                            <i th:each="i : ${#numbers.sequence(1, 5)}"
+                               th:class="${i <= review.rating} ? 'fas fa-star' : 'far fa-star'"></i>
+                            <span style="margin-left: 5px;" th:text="${review.rating} + '/5'"></span>
+                        </div>
+                    </td>
+                    <td class="review-comment" th:text="${review.comment}">Комментарий</td>
+                    <td th:text="${review.reviewDate}">2024-01-01</td>
+                    <td>
+                        <div class="actions-group">
+                            <a th:href="@{'/reviews/edit/' + ${review.id}}" class="btn-edit">
+                                <i class="fas fa-edit"></i> Редактировать
+                            </a>
+                            <a th:href="@{'/reviews/delete/' + ${review.id}}"
+                               class="btn-delete"
+                               onclick="return confirm('Вы уверены, что хотите удалить этот отзыв?')">
+                                <i class="fas fa-trash-alt"></i> Удалить
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${listReviews == null or listReviews.isEmpty()}" class="empty-state">
+        <i class="fas fa-star-of-life"></i>
+        <h3>Нет отзывов</h3>
+        <p>Нажмите "Добавить отзыв", чтобы создать первый отзыв</p>
+    </div>
+</div>
+
+<script>
+    function addBackgroundElements() {
+        if (!document.querySelector('.bg-blur-circle')) {
+            const circles = [
+                { className: 'bg-circle-1', size: 600, top: -200, left: -200 },
+                { className: 'bg-circle-2', size: 550, bottom: -150, right: -150 },
+                { className: 'bg-circle-3', size: 450, top: '60%', left: '10%' },
+                { className: 'bg-circle-4', size: 500, bottom: '20%', right: '20%' }
+            ];
+            circles.forEach(circle => {
+                const div = document.createElement('div');
+                div.className = `bg-blur-circle ${circle.className}`;
+                if (circle.size) div.style.width = `${circle.size}px`;
+                if (circle.size) div.style.height = `${circle.size}px`;
+                if (circle.top) div.style.top = circle.top;
+                if (circle.left) div.style.left = circle.left;
+                if (circle.bottom) div.style.bottom = circle.bottom;
+                if (circle.right) div.style.right = circle.right;
+                document.body.appendChild(div);
+            });
+        }
+        if (!document.querySelector('.soft-glow')) {
+            const glow = document.createElement('div');
+            glow.className = 'soft-glow';
+            document.body.appendChild(glow);
+        }
+        if (!document.querySelector('.stars')) {
+            const stars = document.createElement('div');
+            stars.className = 'stars';
+            stars.id = 'stars';
+            document.body.appendChild(stars);
+        }
+    }
+
+    function createStars() {
+        const container = document.getElementById('stars');
+        if (!container) return;
+        for (let i = 0; i < 80; i++) {
+            const star = document.createElement('div');
+            const rand = Math.random();
+            star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            container.appendChild(star);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        addBackgroundElements();
+        createStars();
+    });
+</script>
+</body>
+</html>

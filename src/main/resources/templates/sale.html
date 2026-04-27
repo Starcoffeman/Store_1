@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Распродажа | ТехноШок</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+    <style>
+        body {
+            background: var(--night-dark);
+            min-height: 100vh;
+        }
+
+        .sale-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Хедер распродажи */
+        .sale-header {
+            margin-bottom: 30px;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(111, 240, 165, 0.15), rgba(111, 240, 165, 0.05));
+            border-radius: 28px;
+            border: 1px solid rgba(111, 240, 165, 0.3);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .sale-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(111, 240, 165, 0.08) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .sale-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff4757, #ff6b6b);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 71, 87, 0); }
+        }
+
+        .sale-header h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--white), #ff4757);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .sale-header p {
+            color: var(--off-white);
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        .discount-banner {
+            display: inline-block;
+            background: rgba(255, 71, 87, 0.2);
+            border: 1px solid #ff4757;
+            border-radius: 50px;
+            padding: 10px 25px;
+            margin-top: 20px;
+        }
+
+        .discount-banner span {
+            color: #ff4757;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Статистика */
+        .sale-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(37, 39, 43, 0.9);
+            border-radius: 20px;
+            padding: 20px 35px;
+            text-align: center;
+            border: 1px solid rgba(111, 240, 165, 0.2);
+            min-width: 180px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff4757;
+        }
+
+        .stat-label {
+            color: var(--off-white);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* Фильтры */
+        .filters-section {
+            background: rgba(37, 39, 43, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(111, 240, 165, 0.2);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .filters-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--neon-green);
+        }
+
+        .filters-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            color: var(--off-white);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(37, 39, 43, 0.9);
+            border: 1px solid rgba(111, 240, 165, 0.3);
+            border-radius: 10px;
+            color: var(--white);
+        }
+
+        .btn-filter {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
+            color: var(--night-dark);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Сетка товаров */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .product-card {
+            background: rgba(37, 39, 43, 0.9);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 1px solid rgba(111, 240, 165, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon-green);
+            box-shadow: var(--shadow-neon);
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #ff4757;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .old-price {
+            text-decoration: line-through;
+            opacity: 0.6;
+            font-size: 0.9rem;
+            margin-right: 8px;
+            color: var(--off-white);
+        }
+
+        .current-price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ff4757;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+
+        .product-title {
+            font-size: 1rem;
+            margin: 10px 0;
+            height: 45px;
+            overflow: hidden;
+            color: var(--white);
+        }
+
+        .product-rating {
+            color: #ffc107;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .btn-cart {
+            width: 100%;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
+            color: var(--night-dark);
+            border: none;
+            padding: 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--off-white);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--neon-green);
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .sale-header h1 { font-size: 2rem; }
+            .filters-grid { flex-direction: column; }
+            .filter-group { width: 100%; }
+            .products-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<!-- Фоновые элементы -->
+<div class="bg-blur-circle bg-circle-1"></div>
+<div class="bg-blur-circle bg-circle-2"></div>
+<div class="bg-blur-circle bg-circle-3"></div>
+<div class="bg-blur-circle bg-circle-4"></div>
+<div class="stars" id="stars"></div>
+<div class="soft-glow"></div>
+
+<!-- Верхняя панель -->
+<div class="top-bar">
+    <div class="container">
+        <div class="city-selector">
+            <i class="fas fa-map-marker-alt"></i> Москва
+            <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
+        </div>
+        <div class="phone-number">
+            <i class="fas fa-phone-alt"></i> +7 (495) 780-20-02
+        </div>
+    </div>
+</div>
+
+<!-- Основной хедер -->
+<div class="main-header">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <a href="/" class="logo">
+            <div class="logo-icon"><i class="fas fa-laptop-code"></i></div>
+            <span>ТехноШок</span>
+        </a>
+        <div class="search-wrapper">
+            <input type="text" class="search-input" placeholder="Поиск товаров..." id="searchInput">
+            <button class="search-button" onclick="searchProducts()"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="header-actions">
+            <a href="/favorites" class="header-action">
+                <i class="fas fa-heart"></i><span>Избранное</span>
+                <span class="favorites-badge" id="favoritesCount">0</span>
+            </a>
+            <a href="/cart" class="header-action">
+                <i class="fas fa-shopping-cart"></i><span>Корзина</span>
+                <span class="cart-badge" id="cartCount">0</span>
+            </a>
+            <a sec:authorize="isAuthenticated()" href="/users/profile" class="header-action">
+                <i class="fas fa-user"></i><span>Профиль</span>
+            </a>
+            <a sec:authorize="!isAuthenticated()" href="/login" class="header-action">
+                <i class="fas fa-sign-in-alt"></i><span>Войти</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Категории -->
+<div class="categories-section">
+    <div class="container">
+        <div class="categories-scroll">
+            <a href="/products/catalog" class="category-item"><i class="fas fa-th-large"></i><span>Все товары</span></a>
+            <a href="/category/notebooks" class="category-item"><i class="fas fa-laptop"></i><span>Ноутбуки</span></a>
+            <a href="/category/smartphones" class="category-item"><i class="fas fa-mobile-alt"></i><span>Смартфоны</span></a>
+            <a href="/category/tv" class="category-item"><i class="fas fa-tv"></i><span>Телевизоры</span></a>
+            <a href="/category/audio" class="category-item"><i class="fas fa-headphones"></i><span>Аудиотехника</span></a>
+            <a href="/category/gaming" class="category-item"><i class="fas fa-gamepad"></i><span>Игры</span></a>
+            <a href="/category/accessories" class="category-item"><i class="fas fa-mouse"></i><span>Аксессуары</span></a>
+        </div>
+    </div>
+</div>
+
+<div class="sale-wrapper">
+    <div class="sale-header">
+        <div class="sale-badge">
+            <i class="fas fa-fire"></i> ОГРАНИЧЕННОЕ ПРЕДЛОЖЕНИЕ
+        </div>
+        <h1>Мега-распродажа!</h1>
+        <p>Только самые выгодные цены на топовые товары</p>
+        <div class="discount-banner">
+            <span>🔥 Скидки до <span th:text="${maxDiscount}">60</span>% 🔥</span>
+        </div>
+    </div>
+
+    <div class="sale-stats">
+        <div class="stat-card">
+            <div class="stat-number" th:text="${productsCount}">0</div>
+            <div class="stat-label">Товаров со скидкой</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" th:text="${maxDiscount}">0</div>
+            <div class="stat-label">Максимальная скидка</div>
+        </div>
+    </div>
+
+    <div th:if="${products != null and !products.isEmpty()}">
+        <!-- Фильтры -->
+        <div class="filters-section">
+            <div class="filters-title">
+                <i class="fas fa-filter"></i> Фильтры
+            </div>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label>Категория</label>
+                    <select id="categoryFilter">
+                        <option value="all">Все категории</option>
+                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Цена до</label>
+                    <input type="number" id="priceMaxFilter" placeholder="Любая">
+                </div>
+                <div class="filter-group">
+                    <label>Скидка</label>
+                    <select id="discountFilter">
+                        <option value="all">Любая</option>
+                        <option value="20">От 20%</option>
+                        <option value="30">От 30%</option>
+                        <option value="50">От 50%</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn-filter" onclick="applyFilters()">Применить</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="products-grid" id="productsGrid"></div>
+    </div>
+
+    <div th:if="${products == null or products.isEmpty()}" class="empty-state">
+        <i class="fas fa-tag"></i>
+        <h3>Товары со скидкой не найдены</h3>
+        <p>Загляните позже — возможно, появятся новые предложения!</p>
+        <a href="/products/catalog" class="btn btn-success mt-3">Перейти в каталог</a>
+    </div>
+</div>
+
+<!-- Футер -->
+<div class="footer">
+    <div class="container">
+        <div class="footer-grid-new">
+            <div class="footer-section">
+                <div class="footer-logo"><div class="footer-logo-icon"><i class="fas fa-laptop-code"></i></div><span>ТехноШок</span></div>
+                <p class="footer-about">Интернет-магазин электроники с 2010 года.</p>
+                <div class="social-links-new">
+                    <a href="#" class="social-link"><i class="fab fa-vk"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Покупателям</h4>
+                <a href="/delivery">Доставка и оплата</a>
+                <a href="/returns">Возврат товара</a>
+                <a href="/warranty">Гарантия</a>
+            </div>
+            <div class="footer-section">
+                <h4>Компания</h4>
+                <a href="/about">О нас</a>
+                <a href="/contacts">Контакты</a>
+                <a href="/blog">Блог</a>
+            </div>
+            <div class="footer-section footer-contact">
+                <h4>Контакты</h4>
+                <p><i class="fas fa-phone"></i> +7 (495) 780-20-02</p>
+                <p><i class="fas fa-envelope"></i> info@techstore.ru</p>
+                <p><i class="fas fa-clock"></i> Ежедневно 9:00-21:00</p>
+            </div>
+        </div>
+        <div class="copyright"><p>© 2026 ТехноШок. Все права защищены.</p></div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const productsFromServer = /*[[${products}]]*/ [];
+    let allProducts = [];
+    let filteredProducts = [];
+
+    function initProducts() {
+        if (productsFromServer && productsFromServer.length > 0) {
+            allProducts = productsFromServer.map(p => ({
+                id: p.id,
+                name: p.name,
+                price: p.price,
+                oldPrice: p.oldPrice,
+                discountPercent: p.discountPercent || Math.round((1 - p.price/p.oldPrice) * 100),
+                rating: p.averageRating || 0,
+                image: p.fileurl || '/images/images.png',
+                categoryId: p.category?.id,
+                categoryName: p.category?.name
+            }));
+        }
+        filteredProducts = [...allProducts];
+        renderProducts();
+    }
+
+    function renderProducts() {
+        const container = document.getElementById('productsGrid');
+        if (!container) return;
+
+        if (filteredProducts.length === 0) {
+            container.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-tag"></i><h3>Товары не найдены</h3><p>Попробуйте изменить фильтры</p></div>';
+            return;
+        }
+
+        container.innerHTML = filteredProducts.map(product => `
+            <div class="product-card" onclick="window.location.href='/products/${product.id}'">
+                <div class="discount-badge">-${product.discountPercent}%</div>
+                <img src="${product.image}" alt="${product.name}" onerror="this.src='/images/images.png'">
+                <h3 class="product-title">${product.name}</h3>
+                <div class="product-rating">
+                    ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5 - Math.floor(product.rating))}
+                </div>
+                <div>
+                    <span class="old-price">${product.oldPrice?.toLocaleString()} ₽</span>
+                    <span class="current-price">${product.price.toLocaleString()} ₽</span>
+                </div>
+                <button class="btn-cart" onclick="event.stopPropagation(); addToCart(${product.id})">
+                    <i class="fas fa-shopping-cart"></i> В корзину
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function applyFilters() {
+        const category = document.getElementById('categoryFilter')?.value;
+        const priceMax = parseFloat(document.getElementById('priceMaxFilter')?.value) || Infinity;
+        const discountMin = parseFloat(document.getElementById('discountFilter')?.value) || 0;
+
+        filteredProducts = allProducts.filter(product => {
+            if (category !== 'all' && product.categoryId != category) return false;
+            if (product.price > priceMax) return false;
+            if (discountMin > 0 && product.discountPercent < discountMin) return false;
+            return true;
+        });
+        renderProducts();
+    }
+
+    function addToCart(productId) {
+        const product = allProducts.find(p => p.id === productId);
+        if (product) {
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            cart.push({ id: product.id, name: product.name, price: product.price });
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+
+            const btn = event.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Добавлено!';
+            setTimeout(() => { btn.innerHTML = originalText; }, 1500);
+        }
+    }
+
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const cartCount = document.getElementById('cartCount');
+        if (cartCount) cartCount.textContent = cart.length;
+    }
+
+    function updateFavoritesCount() {
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        const favoritesCount = document.getElementById('favoritesCount');
+        if (favoritesCount) favoritesCount.textContent = favorites.length;
+    }
+
+    function searchProducts() {
+        const query = document.getElementById('searchInput')?.value.trim();
+        if (query) window.location.href = '/category/search?query=' + encodeURIComponent(query);
+    }
+
+    function addBackgroundElements() {
+        if (!document.querySelector('.bg-blur-circle')) {
+            const circles = [
+                { className: 'bg-circle-1', size: 600, top: -200, left: -200 },
+                { className: 'bg-circle-2', size: 550, bottom: -150, right: -150 },
+                { className: 'bg-circle-3', size: 450, top: '60%', left: '10%' },
+                { className: 'bg-circle-4', size: 500, bottom: '20%', right: '20%' }
+            ];
+            circles.forEach(circle => {
+                const div = document.createElement('div');
+                div.className = `bg-blur-circle ${circle.className}`;
+                if (circle.size) div.style.width = `${circle.size}px`;
+                if (circle.size) div.style.height = `${circle.size}px`;
+                if (circle.top) div.style.top = circle.top;
+                if (circle.left) div.style.left = circle.left;
+                if (circle.bottom) div.style.bottom = circle.bottom;
+                if (circle.right) div.style.right = circle.right;
+                document.body.appendChild(div);
+            });
+        }
+        if (!document.querySelector('.soft-glow')) {
+            const glow = document.createElement('div');
+            glow.className = 'soft-glow';
+            document.body.appendChild(glow);
+        }
+        if (!document.querySelector('.stars')) {
+            const stars = document.createElement('div');
+            stars.className = 'stars';
+            stars.id = 'stars';
+            document.body.appendChild(stars);
+        }
+    }
+
+    function createStars() {
+        const container = document.getElementById('stars');
+        if (!container) return;
+        for (let i = 0; i < 80; i++) {
+            const star = document.createElement('div');
+            const rand = Math.random();
+            star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            container.appendChild(star);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        addBackgroundElements();
+        createStars();
+        initProducts();
+        updateCartCount();
+        updateFavoritesCount();
+
+        document.getElementById('searchInput')?.addEventListener('keypress', e => {
+            if (e.key === 'Enter') searchProducts();
+        });
+    });
+</script>
+</body>
+</html>

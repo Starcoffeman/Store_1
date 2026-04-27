@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавление отзыва | TechStore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Фоновые элементы */
+        .bg-blur-circle {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+        }
+        .bg-circle-1 { width: 600px; height: 600px; top: -200px; left: -200px; background: radial-gradient(circle, rgba(111,240,165,0.25), transparent); animation: floatSoft1 22s ease-in-out infinite; }
+        .bg-circle-2 { width: 550px; height: 550px; bottom: -150px; right: -150px; background: radial-gradient(circle, rgba(111,240,165,0.2), transparent); animation: floatSoft2 25s ease-in-out infinite; }
+        .bg-circle-3 { width: 450px; height: 450px; top: 60%; left: 10%; background: radial-gradient(circle, rgba(111,240,165,0.15), transparent); animation: floatSoft3 28s ease-in-out infinite; }
+        .bg-circle-4 { width: 500px; height: 500px; bottom: 20%; right: 20%; background: radial-gradient(circle, rgba(111,240,165,0.18), transparent); animation: floatSoft4 24s ease-in-out infinite reverse; }
+
+        @keyframes floatSoft1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(40px,-40px) scale(1.08); } 66% { transform: translate(-30px,30px) scale(0.95); } }
+        @keyframes floatSoft2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-35px,-30px) scale(1.05); } 66% { transform: translate(25px,35px) scale(0.98); } }
+        @keyframes floatSoft3 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(45px,25px) scale(1.1); } 66% { transform: translate(-25px,-35px) scale(0.92); } }
+        @keyframes floatSoft4 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-40px,35px) scale(1.03); } 66% { transform: translate(30px,-25px) scale(0.97); } }
+
+        .soft-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.2) 100%);
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(111,240,165,0.4);
+            border-radius: 50%;
+            animation: starTwinkle 3s ease-in-out infinite;
+        }
+        .star-medium { width: 3px; height: 3px; background: rgba(111,240,165,0.5); animation-duration: 4s; }
+        .star-large { width: 4px; height: 4px; background: rgba(111,240,165,0.6); animation-duration: 5s; }
+        @keyframes starTwinkle { 0%,100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.3); } }
+
+        .form-container {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 35px;
+            background: rgba(37, 39, 43, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            border: 1px solid rgba(111, 240, 165, 0.2);
+            position: relative;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--neon-green), transparent, var(--neon-green));
+            border-radius: 26px;
+            z-index: -1;
+            opacity: 0.3;
+            animation: borderPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes borderPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(111, 240, 165, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(111, 240, 165, 0); }
+        }
+
+        .form-icon i {
+            font-size: 32px;
+            color: var(--night-dark);
+        }
+
+        .form-header h1 {
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, var(--white), var(--neon-green));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .form-header p {
+            font-size: 0.85rem;
+            color: var(--off-white);
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        .product-info {
+            background: rgba(111, 240, 165, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid rgba(111, 240, 165, 0.3);
+        }
+
+        .product-info i {
+            font-size: 2rem;
+            color: var(--neon-green);
+            margin-bottom: 10px;
+        }
+
+        .product-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--white);
+        }
+
+        .product-info p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            color: var(--off-white);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: var(--off-white);
+            margin-bottom: 6px;
+            display: block;
+            font-size: 0.85rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--neon-green);
+            font-size: 14px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 40px 10px 40px;
+            background: rgba(37, 39, 43, 0.9);
+            border: 2px solid rgba(111, 240, 165, 0.2);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 14px;
+            transition: all var(--transition-normal);
+        }
+
+        .form-control:focus {
+            border-color: var(--neon-green);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(111, 240, 165, 0.2);
+        }
+
+        .form-control::placeholder {
+            color: rgba(239, 239, 239, 0.5);
+        }
+
+        select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236ff0a5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+        }
+
+        select.form-control option {
+            background: var(--night-dark);
+            color: var(--white);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+            padding-top: 10px;
+        }
+
+        textarea.form-control + .input-icon {
+            top: 20px;
+            transform: none;
+        }
+
+        .text-danger {
+            color: #ff6b6b !important;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .form-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
+            color: var(--night-dark);
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            transition: all var(--transition-normal);
+            cursor: pointer;
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-neon);
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(111, 240, 165, 0.3);
+            color: var(--off-white);
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-back:hover {
+            background: rgba(111, 240, 165, 0.1);
+            color: var(--neon-green);
+            transform: translateX(3px);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .form-container {
+                padding: 25px;
+                max-width: 550px;
+            }
+
+            .form-buttons {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .form-header h1 {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 20px;
+            }
+
+            .form-header h1 {
+                font-size: 1.2rem;
+            }
+
+            .form-icon {
+                width: 55px;
+                height: 55px;
+            }
+
+            .form-icon i {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Фоновые элементы -->
+<div class="bg-blur-circle bg-circle-1"></div>
+<div class="bg-blur-circle bg-circle-2"></div>
+<div class="bg-blur-circle bg-circle-3"></div>
+<div class="bg-blur-circle bg-circle-4"></div>
+<div class="stars" id="stars"></div>
+<div class="soft-glow"></div>
+
+<div class="form-container">
+    <div class="form-header">
+        <div class="form-icon">
+            <i class="fas fa-star"></i>
+        </div>
+        <h1>Добавление отзыва</h1>
+        <p>Поделитесь своим мнением о товаре</p>
+    </div>
+
+    <div class="product-info" th:if="${product != null}">
+        <i class="fas fa-box"></i>
+        <h3 th:text="${product.name}">Название товара</h3>
+        <p th:text="'Цена: ' + ${product.price} + ' ₽'">Цена: 0 ₽</p>
+    </div>
+
+    <form th:action="@{/reviews/main}" th:object="${review}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <input type="hidden" th:field="*{productID}" />
+
+        <div class="form-group">
+            <label for="userID">Ваш ID</label>
+            <div class="input-wrapper">
+                <i class="fas fa-user input-icon"></i>
+                <input type="number" class="form-control" id="userID" th:field="*{userID}" placeholder="Введите ваш ID" required>
+            </div>
+            <div th:if="${#fields.hasErrors('userID')}" class="text-danger">
+                <span th:errors="*{userID}"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="rating">Рейтинг *</label>
+            <div class="input-wrapper">
+                <i class="fas fa-star input-icon"></i>
+                <select class="form-control" id="rating" th:field="*{rating}" required>
+                    <option value="1">★ 1 звезда</option>
+                    <option value="2">★★ 2 звезды</option>
+                    <option value="3">★★★ 3 звезды</option>
+                    <option value="4">★★★★ 4 звезды</option>
+                    <option value="5">★★★★★ 5 звезд</option>
+                </select>
+            </div>
+            <div th:if="${#fields.hasErrors('rating')}" class="text-danger">
+                <span th:errors="*{rating}"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="comment">Комментарий *</label>
+            <div class="input-wrapper">
+                <i class="fas fa-comment input-icon"></i>
+                <textarea class="form-control" id="comment" th:field="*{comment}" placeholder="Расскажите о своем опыте использования товара..." required></textarea>
+            </div>
+            <div th:if="${#fields.hasErrors('comment')}" class="text-danger">
+                <span th:errors="*{comment}"></span>
+            </div>
+        </div>
+
+        <div class="form-buttons">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> Оставить отзыв
+            </button>
+            <a href="/" class="btn-back">
+                <i class="fas fa-arrow-left"></i> На главную
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function addBackgroundElements() {
+        if (!document.querySelector('.bg-blur-circle')) {
+            const circles = [
+                { className: 'bg-circle-1', size: 600, top: -200, left: -200 },
+                { className: 'bg-circle-2', size: 550, bottom: -150, right: -150 },
+                { className: 'bg-circle-3', size: 450, top: '60%', left: '10%' },
+                { className: 'bg-circle-4', size: 500, bottom: '20%', right: '20%' }
+            ];
+            circles.forEach(circle => {
+                const div = document.createElement('div');
+                div.className = `bg-blur-circle ${circle.className}`;
+                if (circle.size) div.style.width = `${circle.size}px`;
+                if (circle.size) div.style.height = `${circle.size}px`;
+                if (circle.top) div.style.top = circle.top;
+                if (circle.left) div.style.left = circle.left;
+                if (circle.bottom) div.style.bottom = circle.bottom;
+                if (circle.right) div.style.right = circle.right;
+                document.body.appendChild(div);
+            });
+        }
+        if (!document.querySelector('.soft-glow')) {
+            const glow = document.createElement('div');
+            glow.className = 'soft-glow';
+            document.body.appendChild(glow);
+        }
+        if (!document.querySelector('.stars')) {
+            const stars = document.createElement('div');
+            stars.className = 'stars';
+            stars.id = 'stars';
+            document.body.appendChild(stars);
+        }
+    }
+
+    function createStars() {
+        const container = document.getElementById('stars');
+        if (!container) return;
+        for (let i = 0; i < 80; i++) {
+            const star = document.createElement('div');
+            const rand = Math.random();
+            star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            container.appendChild(star);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        addBackgroundElements();
+        createStars();
+    });
+</script>
+</body>
+</html>

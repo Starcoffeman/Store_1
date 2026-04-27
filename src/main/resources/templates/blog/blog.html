@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{/info/layout}" lang="ru">
+<head>
+	<title>Блог | ТехноШок</title>
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+	<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+	<style>
+		.blog-container {
+			max-width: 1200px;
+			margin: 20px auto;
+			padding: 20px;
+		}
+
+		.back-button {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			background: rgba(255,255,255,0.1);
+			border: 1px solid rgba(111,240,165,0.3);
+			color: var(--off-white);
+			padding: 10px 20px;
+			border-radius: 30px;
+			text-decoration: none;
+			margin-bottom: 20px;
+			transition: all var(--transition-fast);
+		}
+
+		.back-button:hover {
+			background: rgba(111,240,165,0.2);
+			transform: translateX(-5px);
+			color: var(--neon-green);
+		}
+
+		.blog-header {
+			margin-bottom: 30px;
+			padding: 30px;
+			background: linear-gradient(135deg, rgba(111,240,165,0.1), rgba(111,240,165,0.05));
+			border-radius: 24px;
+			border: 1px solid rgba(111,240,165,0.2);
+			text-align: center;
+		}
+
+		.blog-header h1 {
+			font-size: 2rem;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 12px;
+			color: var(--white);
+		}
+
+		.blog-header p {
+			color: var(--off-white);
+			opacity: 0.8;
+		}
+
+		.blog-filters {
+			display: flex;
+			gap: 15px;
+			margin-bottom: 30px;
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+
+		.filter-btn {
+			background: rgba(255,255,255,0.05);
+			border: 1px solid rgba(111,240,165,0.3);
+			color: var(--off-white);
+			padding: 8px 20px;
+			border-radius: 30px;
+			cursor: pointer;
+			transition: all var(--transition-fast);
+			text-decoration: none;
+			display: inline-block;
+		}
+
+		.filter-btn:hover, .filter-btn.active {
+			background: var(--neon-green);
+			color: var(--night-dark);
+			border-color: var(--neon-green);
+		}
+
+		.search-form {
+			display: flex;
+			justify-content: center;
+			margin-bottom: 30px;
+		}
+
+		.search-input-group {
+			display: flex;
+			max-width: 500px;
+			width: 100%;
+			gap: 10px;
+		}
+
+		.search-input-group input {
+			flex: 1;
+			padding: 12px 20px;
+			background: rgba(255,255,255,0.1);
+			border: 1px solid rgba(111,240,165,0.3);
+			border-radius: 30px;
+			color: var(--white);
+		}
+
+		.search-input-group input:focus {
+			outline: none;
+			border-color: var(--neon-green);
+		}
+
+		.search-input-group button {
+			background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
+			border: none;
+			padding: 0 25px;
+			border-radius: 30px;
+			color: var(--night-dark);
+			cursor: pointer;
+			font-weight: bold;
+		}
+
+		.articles-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+			gap: 25px;
+			margin-bottom: 40px;
+		}
+
+		.article-card {
+			background: rgba(37, 39, 43, 0.9);
+			border-radius: 20px;
+			overflow: hidden;
+			transition: all var(--transition-normal);
+			border: 1px solid rgba(111,240,165,0.2);
+			text-decoration: none;
+			display: block;
+			color: inherit;
+		}
+
+		.article-card:hover {
+			transform: translateY(-5px);
+			border-color: var(--neon-green);
+			box-shadow: var(--shadow-neon);
+		}
+
+		.article-image {
+			width: 100%;
+			height: 200px;
+			object-fit: cover;
+		}
+
+		.article-type-badge {
+			display: inline-block;
+			background: var(--neon-green);
+			color: var(--night-dark);
+			padding: 4px 12px;
+			border-radius: 20px;
+			font-size: 11px;
+			font-weight: bold;
+			margin-bottom: 10px;
+		}
+
+		.article-content {
+			padding: 20px;
+		}
+
+		.article-date {
+			font-size: 0.8rem;
+			color: var(--neon-green);
+			margin-bottom: 8px;
+		}
+
+		.article-title {
+			font-size: 1.2rem;
+			color: var(--white);
+			margin-bottom: 10px;
+			line-height: 1.4;
+		}
+
+		.article-excerpt {
+			color: var(--off-white);
+			opacity: 0.8;
+			margin-bottom: 15px;
+			line-height: 1.5;
+		}
+
+		.article-stats {
+			display: flex;
+			gap: 15px;
+			margin-top: 10px;
+			color: var(--off-white);
+			opacity: 0.6;
+			font-size: 12px;
+		}
+
+		.article-stats i {
+			margin-right: 4px;
+		}
+
+		.read-more {
+			color: var(--neon-green);
+			font-weight: 600;
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			transition: all var(--transition-fast);
+			margin-top: 10px;
+		}
+
+		.article-card:hover .read-more {
+			gap: 10px;
+		}
+
+		.pagination {
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+			margin-top: 30px;
+			flex-wrap: wrap;
+		}
+
+		.page-link {
+			background: rgba(255,255,255,0.05);
+			border: 1px solid rgba(111,240,165,0.3);
+			color: var(--off-white);
+			padding: 8px 14px;
+			border-radius: 8px;
+			text-decoration: none;
+			transition: all var(--transition-fast);
+		}
+
+		.page-link:hover, .page-link.active {
+			background: var(--neon-green);
+			color: var(--night-dark);
+			border-color: var(--neon-green);
+		}
+
+		.empty-state {
+			text-align: center;
+			padding: 60px;
+			color: var(--off-white);
+		}
+
+		.empty-state i {
+			font-size: 4rem;
+			opacity: 0.5;
+			margin-bottom: 15px;
+		}
+
+		@media (max-width: 768px) {
+			.articles-grid { grid-template-columns: 1fr; }
+			.blog-header h1 { font-size: 1.5rem; }
+		}
+	</style>
+</head>
+<body>
+<div layout:fragment="content">
+	<div class="blog-container">
+		<a href="/" class="back-button">
+			<i class="fas fa-arrow-left"></i> На главную
+		</a>
+
+		<div class="blog-header">
+			<h1><i class="fas fa-newspaper"></i> Блог</h1>
+			<p>Последние новости, обзоры и полезные статьи</p>
+		</div>
+
+		<!-- Фильтры по категориям -->
+		<div class="blog-filters">
+			<a href="/blog" th:classappend="${currentType == null} ? 'active' : ''" class="filter-btn">Все</a>
+			<a href="/blog/category/NEWS" th:classappend="${currentType == 'news' or currentType == 'NEWS'} ? 'active' : ''" class="filter-btn">
+				<i class="fas fa-bullhorn"></i> Новости
+			</a>
+			<a href="/blog/category/REVIEW" th:classappend="${currentType == 'review' or currentType == 'REVIEW'} ? 'active' : ''" class="filter-btn">
+				<i class="fas fa-star"></i> Обзоры
+			</a>
+			<a href="/blog/category/TIPS" th:classappend="${currentType == 'tips' or currentType == 'TIPS'} ? 'active' : ''" class="filter-btn">
+				<i class="fas fa-lightbulb"></i> Советы
+			</a>
+			<a href="/blog/category/GUIDE" th:classappend="${currentType == 'guide' or currentType == 'GUIDE'} ? 'active' : ''" class="filter-btn">
+				<i class="fas fa-book"></i> Гайды
+			</a>
+		</div>
+
+		<!-- Поиск -->
+		<div class="search-form">
+			<form action="/blog/search" method="get" class="search-input-group">
+				<input type="text" name="q" placeholder="Поиск статей..." th:value="${searchQuery}">
+				<button type="submit"><i class="fas fa-search"></i> Поиск</button>
+			</form>
+		</div>
+
+		<!-- Список статей - ИСПОЛЬЗУЕМ ССЫЛКИ ВМЕСТО onclick -->
+		<div th:if="${articles != null and !articles.isEmpty()}" class="articles-grid">
+			<a th:each="article : ${articles}"
+			   th:href="@{/blog/{slug}(slug=${article.slug})}"
+			   class="article-card">
+
+				<img th:if="${article.imageUrl}" th:src="${article.imageUrl}" th:alt="${article.title}" class="article-image">
+				<img th:unless="${article.imageUrl}" src="/images/images.png" class="article-image">
+
+				<div class="article-content">
+					<span class="article-type-badge" th:text="${article.articleTypeName}">Новость</span>
+					<div class="article-date">
+						<i class="far fa-calendar-alt"></i> <span th:text="${article.formattedDate}">Дата</span>
+					</div>
+					<h3 class="article-title" th:text="${article.title}">Заголовок статьи</h3>
+					<p class="article-excerpt" th:text="${article.excerpt}">Краткое описание...</p>
+					<div class="article-stats">
+						<span><i class="fas fa-eye"></i> <span th:text="${article.views}">0</span></span>
+						<span><i class="fas fa-thumbs-up"></i> <span th:text="${article.likes}">0</span></span>
+					</div>
+					<div class="read-more">
+						Читать далее <i class="fas fa-arrow-right"></i>
+					</div>
+				</div>
+			</a>
+		</div>
+
+		<!-- Пустое состояние -->
+		<div th:if="${articles == null or articles.isEmpty()}" class="empty-state">
+			<i class="fas fa-newspaper"></i>
+			<h3>Статьи не найдены</h3>
+			<p th:if="${searchQuery}">По запросу "${searchQuery}" ничего не найдено</p>
+			<p th:unless="${searchQuery}">В данный момент статьи отсутствуют. Загляните позже!</p>
+			<a href="/blog" class="filter-btn" style="display: inline-block; margin-top: 15px;">Вернуться ко всем статьям</a>
+		</div>
+
+		<!-- Пагинация -->
+		<div th:if="${totalPages != null and totalPages > 1}" class="pagination">
+			<a th:if="${currentPage > 1}" th:href="@{${currentType != null ? '/blog/category/' + currentType : '/blog'}(page=${currentPage - 1}, q=${searchQuery})}"
+			   class="page-link"><i class="fas fa-chevron-left"></i></a>
+
+			<a th:each="page : ${#numbers.sequence(1, totalPages)}"
+			   th:href="@{${currentType != null ? '/blog/category/' + currentType : '/blog'}(page=${page}, q=${searchQuery})}"
+			   th:classappend="${page == currentPage} ? 'active' : ''"
+			   class="page-link" th:text="${page}">1</a>
+
+			<a th:if="${currentPage < totalPages}" th:href="@{${currentType != null ? '/blog/category/' + currentType : '/blog'}(page=${currentPage + 1}, q=${searchQuery})}"
+			   class="page-link"><i class="fas fa-chevron-right"></i></a>
+		</div>
+	</div>
+</div>
+
+<script>
+	function getCsrfToken() {
+		return document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+	}
+
+	function getCsrfHeader() {
+		return document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+	}
+
+	function isUserAuthenticated() {
+		const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+		return csrfToken && csrfToken !== '';
+	}
+
+	function updateCartCount() {
+		const cartCountElement = document.getElementById('cartCount');
+		if (!cartCountElement) return;
+		if (!isUserAuthenticated()) {
+			cartCountElement.textContent = '0';
+			return;
+		}
+		fetch('/cart/count')
+				.then(response => response.ok ? response.json() : { count: 0 })
+				.then(data => cartCountElement.textContent = data.count || 0)
+				.catch(error => console.error('Ошибка загрузки корзины:', error));
+	}
+
+	function updateFavoritesCount() {
+		const favCountElement = document.getElementById('favoritesCount');
+		if (!favCountElement) return;
+		if (!isUserAuthenticated()) {
+			favCountElement.textContent = '0';
+			return;
+		}
+		fetch('/favorites/count')
+				.then(response => response.ok ? response.json() : 0)
+				.then(data => favCountElement.textContent = data || 0)
+				.catch(error => console.error('Ошибка загрузки избранного:', error));
+	}
+
+	function searchProducts() {
+		const searchInput = document.getElementById('searchInput');
+		const q = searchInput?.value.trim();
+		if(q) window.location.href = '/category/search?query=' + encodeURIComponent(q);
+	}
+
+	function addBackgroundElements() {
+		if (!document.querySelector('.bg-blur-circle')) {
+			const circles = [
+				{ className: 'bg-circle-1', size: 600, top: -200, left: -200 },
+				{ className: 'bg-circle-2', size: 550, bottom: -150, right: -150 },
+				{ className: 'bg-circle-3', size: 450, top: '60%', left: '10%' },
+				{ className: 'bg-circle-4', size: 500, bottom: '20%', right: '20%' }
+			];
+			circles.forEach(circle => {
+				const div = document.createElement('div');
+				div.className = `bg-blur-circle ${circle.className}`;
+				if (circle.size) div.style.width = `${circle.size}px`;
+				if (circle.size) div.style.height = `${circle.size}px`;
+				if (circle.top) div.style.top = circle.top;
+				if (circle.left) div.style.left = circle.left;
+				if (circle.bottom) div.style.bottom = circle.bottom;
+				if (circle.right) div.style.right = circle.right;
+				document.body.appendChild(div);
+			});
+		}
+		if (!document.querySelector('.soft-glow')) {
+			const glow = document.createElement('div');
+			glow.className = 'soft-glow';
+			document.body.appendChild(glow);
+		}
+		if (!document.querySelector('.stars')) {
+			const stars = document.createElement('div');
+			stars.className = 'stars';
+			stars.id = 'stars';
+			document.body.appendChild(stars);
+		}
+	}
+
+	function createStars() {
+		const container = document.getElementById('stars');
+		if (!container) return;
+		for (let i = 0; i < 80; i++) {
+			const star = document.createElement('div');
+			const rand = Math.random();
+			star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
+			star.style.left = Math.random() * 100 + '%';
+			star.style.top = Math.random() * 100 + '%';
+			star.style.animationDelay = Math.random() * 5 + 's';
+			container.appendChild(star);
+		}
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		addBackgroundElements();
+		createStars();
+		updateCartCount();
+		updateFavoritesCount();
+
+		const searchInput = document.getElementById('searchInput');
+		if (searchInput) {
+			searchInput.addEventListener('keypress', e => {
+				if (e.key === 'Enter') searchProducts();
+			});
+		}
+	});
+</script>
+</body>
+</html>
