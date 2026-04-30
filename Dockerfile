@@ -1,27 +1,18 @@
-# Этап 1: Сборка проекта
-FROM eclipse-temurin:21-jdk-alpine AS build
-WORKDIR /app
-# Копируем файлы сборщика
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
-COPY src src
-# Даем права на запуск и собираем JAR (пропуская тесты для экономии времени/памяти)
-RUN chmod +x ./gradlew
+# Этап 1: Сборка
+FROM gradle:8.13-jdk17 AS build
+COPY --chown=gradle:gradle . /home/gradle/src
+WORKDIR /home/gradle/src
+# Сборка jar-файла
 RUN ./gradlew clean bootJar -x test
 
 # Этап 2: Запуск
-FROM eclipse-temurin:21-jre-alpine
+FROM openjdk:17-jdk-slim
 WORKDIR /app
-# Копируем только готовый JAR из первого этапа
-COPY --from=build /app/build/libs/*.jar app.jar
 
-# Настройки для экономии памяти (очень важно для Render 512MB)
-# -Xmx300m ограничивает кучу Java, чтобы хватило места остальным процессам
-ENV JAVA_OPTS="-Xmx300m -Xms300m"
+# Копируем jar-файл из этапа сборки
+# В Gradle Spring Boot jar обычно лежит в build/libs/
+COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
 
-# Render передает порт в переменной среды PORT
-EXPOSE 8080
-
-ENTRYPOINT ["sh", "-Xmx300m", "-Xss512k", "-XX:MaxRAMPercentage=75.0", "-c", "java $JAVA_OPTS -jar app.jar --server.port=${PORT:-8080}"]
+# Настройки для Render (Free Tier 512MB)
+# Используем "Shell form" (без квадратных скобок), чтобы переменная $PORT подставилась корректно
+CMD java -Xmx300m -Xss512k -Dserver.port=${PORT} -jar app.jar
