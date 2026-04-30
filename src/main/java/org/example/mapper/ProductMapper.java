@@ -28,6 +28,14 @@ public class ProductMapper {
                 .orElse(0.0);
         dto.setAverageRating(avgRating);
 
+        // ВЫЧИСЛЯЕМ ПРОЦЕНТ СКИДКИ
+        if (product.getOldPrice() != null && product.getOldPrice() > 0 && product.getPrice() < product.getOldPrice()) {
+            int discountPercent = (int) ((1 - product.getPrice() / product.getOldPrice()) * 100);
+            dto.setDiscountPercent(discountPercent);
+        } else {
+            dto.setDiscountPercent(0);
+        }
+
         // Преобразуем отзывы без циклических ссылок
         List<ProductDTO.ReviewDTO> reviewDTOs = product.getReviews().stream()
                 .map(review -> {

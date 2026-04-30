@@ -67,26 +67,29 @@ public class ReviewController {
     }
 
     @PostMapping("/main")
-    public String addReviewMain(@Valid Review review,
-                                BindingResult bindingResult,
-                                Model model,
-                                Principal principal) {
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("product", review.getProduct());
-            return "review/addReviewMain";
+    public String addReviewMain(@RequestParam("rating") Integer rating,
+                                @RequestParam("comment") String comment,
+                                @RequestParam("product.id") Integer productId,
+                                Principal principal,
+                                Model model) {
+
+        if (principal == null) {
+            return "redirect:/login";
         }
 
-        // Устанавливаем дату отзыва
+        User currentUser = userService.findByUsername(principal.getName());
+        Product product = productService.findById(productId);
+
+        Review review = new Review();
+        review.setRating(rating);
+        review.setComment(comment);
+        review.setProduct(product);
+        review.setUser(currentUser);
         review.setReviewDate(LocalDateTime.now());
 
-        // Если пользователь не выбран, пробуем взять текущего
-        if (review.getUser() == null && principal != null) {
-            User currentUser = userService.findByUsername(principal.getName());
-            review.setUser(currentUser);
-        }
-
         reviewService.save(review);
-        return "redirect:/products/" + review.getProduct().getId();
+
+        return "redirect:/products/" + productId;
     }
 
     @PostMapping("/add")

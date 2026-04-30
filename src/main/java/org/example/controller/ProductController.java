@@ -95,12 +95,13 @@ public class ProductController {
             List<Category> categories = categoryService.findAll();
 
             List<ProductDTO> productDTOs = products.stream()
-                    .map(ProductMapper :: convertToDTO)
+                    .map(ProductMapper::convertToDTO)
                     .collect(Collectors.toList());
 
+            // Собираем уникальные бренды для фильтрации
             Set<String> brandsSet = new HashSet<>();
             for (Product product : products) {
-                if (product.getBrand() != null && !product.getBrand().getName().isEmpty()) {
+                if (product.getBrand() != null && product.getBrand().getName() != null && !product.getBrand().getName().isEmpty()) {
                     brandsSet.add(product.getBrand().getName());
                 }
             }
@@ -111,31 +112,7 @@ public class ProductController {
 
             return "product/allProduct";
         } catch (Exception e) {
-            model.addAttribute("error", "Ошибка загрузки формы: " + e.getMessage());
-            return "error";
-        }
-    }
-
-    @GetMapping("/catalog/notebooks")
-    public String getAllNotebooks(Model model) {
-        try {
-            List<Product> products = productService.findAll();
-            List<Category> categories = categoryService.findAll();
-
-            Set<String> brandsSet = new HashSet<>();
-            for (Product product : products) {
-                if (product.getBrand() != null && !product.getBrand().getName().isEmpty()) {
-                    brandsSet.add(product.getBrand().getName());
-                }
-            }
-
-            model.addAttribute("products", products);
-            model.addAttribute("categories", categories);
-            model.addAttribute("brands", brandsSet);
-
-            return "product/allProduct";
-        } catch (Exception e) {
-            model.addAttribute("error", "Ошибка загрузки формы: " + e.getMessage());
+            model.addAttribute("error", "Ошибка загрузки товаров: " + e.getMessage());
             return "error";
         }
     }

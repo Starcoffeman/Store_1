@@ -22,12 +22,5 @@ public class LoginController {
         model.addAttribute("loginForm", new LoginForm());
         return "login";
     }
-
-//    @PostMapping
-//    public String login(@ModelAttribute("loginForm") LoginForm loginForm, Model model) {
-//        List<Product> products = productService.findAll();
-//        model.addAttribute("products", products);
-//        return "redirect:/";
-//    }
 }
 

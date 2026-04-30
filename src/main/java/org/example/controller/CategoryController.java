@@ -15,7 +15,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -58,7 +60,12 @@ public class CategoryController {
             searchResults = allProducts;
         }
 
-        model.addAttribute("products", searchResults);
+        // Конвертируем в DTO для единообразия
+        List<ProductDTO> productDTOs = searchResults.stream()
+                .map(ProductMapper::convertToDTO)
+                .collect(Collectors.toList());
+
+        model.addAttribute("products", productDTOs);
         model.addAttribute("searchQuery", searchQuery);
         model.addAttribute("resultsCount", searchResults.size());
 
@@ -102,25 +109,46 @@ public class CategoryController {
         return "redirect:/category";
     }
 
+    // ========== ИСПРАВЛЕННЫЕ МЕТОДЫ ДЛЯ КАТЕГОРИЙ ==========
+
     @GetMapping("/notebooks")
     public String categoryNotebooks(Model model) {
         List<Product> products = productService.findAllByCategoryName("Ноутбуки");
         List<ProductDTO> productDTOs = products.stream()
-                .map(ProductMapper:: convertToDTO)
+                .map(ProductMapper::convertToDTO)
                 .collect(Collectors.toList());
+
+        // Собираем уникальные бренды для фильтрации
+        Set<String> brandsSet = new HashSet<>();
+        for (Product product : products) {
+            if (product.getBrand() != null && product.getBrand().getName() != null && !product.getBrand().getName().isEmpty()) {
+                brandsSet.add(product.getBrand().getName());
+            }
+        }
+
         model.addAttribute("products", productDTOs);
+        model.addAttribute("brands", brandsSet);
+        model.addAttribute("currentCategory", "Ноутбуки");
         return "category/notebooks";
     }
-
 
     @GetMapping("/smartphones")
     public String categorySmartphones(Model model) {
         List<Product> products = productService.findAllByCategoryName("Смартфоны");
-
         List<ProductDTO> productDTOs = products.stream()
-                .map(ProductMapper:: convertToDTO)
+                .map(ProductMapper::convertToDTO)
                 .collect(Collectors.toList());
+
+        Set<String> brandsSet = new HashSet<>();
+        for (Product product : products) {
+            if (product.getBrand() != null && product.getBrand().getName() != null && !product.getBrand().getName().isEmpty()) {
+                brandsSet.add(product.getBrand().getName());
+            }
+        }
+
         model.addAttribute("products", productDTOs);
+        model.addAttribute("brands", brandsSet);
+        model.addAttribute("currentCategory", "Смартфоны");
         return "category/smartphones";
     }
 
@@ -128,31 +156,59 @@ public class CategoryController {
     public String categoryTv(Model model) {
         List<Product> products = productService.findAllByCategoryName("Телевизоры");
         List<ProductDTO> productDTOs = products.stream()
-                .map(ProductMapper:: convertToDTO)
+                .map(ProductMapper::convertToDTO)
                 .collect(Collectors.toList());
+
+        Set<String> brandsSet = new HashSet<>();
+        for (Product product : products) {
+            if (product.getBrand() != null && product.getBrand().getName() != null && !product.getBrand().getName().isEmpty()) {
+                brandsSet.add(product.getBrand().getName());
+            }
+        }
+
         model.addAttribute("products", productDTOs);
+        model.addAttribute("brands", brandsSet);
+        model.addAttribute("currentCategory", "Телевизоры");
         return "category/tv";
     }
 
-
     @GetMapping("/audio")
-    public String categoryАudio(Model model) {
+    public String categoryAudio(Model model) {
         List<Product> products = productService.findAllByCategoryName("Аудиотехника");
         List<ProductDTO> productDTOs = products.stream()
-                .map(ProductMapper:: convertToDTO)
+                .map(ProductMapper::convertToDTO)
                 .collect(Collectors.toList());
+
+        Set<String> brandsSet = new HashSet<>();
+        for (Product product : products) {
+            if (product.getBrand() != null && product.getBrand().getName() != null && !product.getBrand().getName().isEmpty()) {
+                brandsSet.add(product.getBrand().getName());
+            }
+        }
+
         model.addAttribute("products", productDTOs);
+        model.addAttribute("brands", brandsSet);
+        model.addAttribute("currentCategory", "Аудиотехника");
         return "category/audio";
     }
-
 
     @GetMapping("/gaming")
     public String categoryGaming(Model model) {
         List<Product> products = productService.findAllByCategoryName("Игровые товары");
         List<ProductDTO> productDTOs = products.stream()
-                .map(ProductMapper:: convertToDTO)
+                .map(ProductMapper::convertToDTO)
                 .collect(Collectors.toList());
+
+        Set<String> brandsSet = new HashSet<>();
+        for (Product product : products) {
+            if (product.getBrand() != null && product.getBrand().getName() != null && !product.getBrand().getName().isEmpty()) {
+                brandsSet.add(product.getBrand().getName());
+            }
+        }
+
         model.addAttribute("products", productDTOs);
+        model.addAttribute("brands", brandsSet);
+        model.addAttribute("currentCategory", "Игровые товары");
         return "category/gaming";
     }
 
@@ -160,11 +216,19 @@ public class CategoryController {
     public String categoryAccessories(Model model) {
         List<Product> products = productService.findAllByCategoryName("Аксессуары");
         List<ProductDTO> productDTOs = products.stream()
-                .map(ProductMapper:: convertToDTO)
+                .map(ProductMapper::convertToDTO)
                 .collect(Collectors.toList());
+
+        Set<String> brandsSet = new HashSet<>();
+        for (Product product : products) {
+            if (product.getBrand() != null && product.getBrand().getName() != null && !product.getBrand().getName().isEmpty()) {
+                brandsSet.add(product.getBrand().getName());
+            }
+        }
+
         model.addAttribute("products", productDTOs);
+        model.addAttribute("brands", brandsSet);
+        model.addAttribute("currentCategory", "Аксессуары");
         return "category/accessories";
     }
 }
-
-

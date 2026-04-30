@@ -9,6 +9,71 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="stylesheet" th:href="@{/css/main.css}"/>
     <style>
+
+		/* Дополнительные стили для ссылок на товар */
+		.product-link {
+			color: var(--white);
+			text-decoration: none;
+			transition: all var(--transition-fast);
+			cursor: pointer;
+			position: relative;
+			display: inline-block;
+		}
+
+		.product-link:hover {
+			color: var(--neon-green);
+		}
+
+		.product-link::after {
+			content: '';
+			position: absolute;
+			bottom: -2px;
+			left: 0;
+			width: 0;
+			height: 1px;
+			background: var(--neon-green);
+			transition: width var(--transition-fast);
+		}
+
+		.product-link:hover::after {
+			width: 100%;
+		}
+
+		/* Ссылка на изображение */
+		.image-link {
+			display: inline-block;
+			cursor: pointer;
+			transition: transform var(--transition-fast);
+		}
+
+		.image-link:hover {
+			transform: scale(1.05);
+		}
+
+		/* Иконка перехода */
+		.product-link i {
+			font-size: 10px;
+			margin-left: 5px;
+			opacity: 0;
+			transition: opacity var(--transition-fast);
+		}
+
+		.product-link:hover i {
+			opacity: 1;
+		}
+
+		.cart-product-img {
+			width: 80px;
+			height: 80px;
+			object-fit: contain;
+			cursor: pointer;
+			transition: transform var(--transition-fast);
+		}
+
+		.cart-product-img:hover {
+			transform: scale(1.05);
+		}
+
         :root {
             --neon-green: #6ff0a5;
             --neon-green-dark: #4ad685;
@@ -21,7 +86,7 @@
         }
 
         .cart-wrapper {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -281,7 +346,6 @@
             <a href="/category/tv" class="category-item"><i class="fas fa-tv"></i><span>Телевизоры</span></a>
             <a href="/category/audio" class="category-item"><i class="fas fa-headphones"></i><span>Аудиотехника</span></a>
             <a href="/category/gaming" class="category-item"><i class="fas fa-gamepad"></i><span>Игры</span></a>
-            <a href="/category/accessories" class="category-item"><i class="fas fa-mouse"></i><span>Аксессуары</span></a>
         </div>
     </div>
 </div>
@@ -295,62 +359,67 @@
         <p>Ваши выбранные товары</p>
     </div>
 
-    <div th:if="${cart.items != null and !cart.items.isEmpty()}" class="row">
-        <div class="col-lg-9">  <!-- Было col-lg-8, стало col-lg-9 -->
-            <table class="table cart-table">
-                <thead>
-                <tr>
-                    <th>Товар</th>
-                    <th>Цена</th>
-                    <th>Количество</th>
-                    <th>Сумма</th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="item : ${cart.items}">
-                    <td>
-                        <div class="d-flex align-items-center gap-3">
-                            <img th:src="${item.productImage != null ? item.productImage : '/images/images.png'}"
-                                 th:alt="${item.productName}" class="cart-product-img">
-                            <span th:text="${item.productName}"></span>
-                        </div>
-                    </td>
-                    <td th:text="${#numbers.formatDecimal(item.price, 0, 2)} + ' ₽'"></td>
-                    <td>
-                        <input type="number" class="quantity-input" th:data-id="${item.productId}"
-                               th:value="${item.quantity}" min="1" onchange="updateQuantity(this)">
-                    </td>
-                    <td th:text="${#numbers.formatDecimal(item.subtotal, 0, 2)} + ' ₽'"></td>
-                    <td>
-                        <button class="remove-btn" th:data-id="${item.productId}" onclick="removeFromCart(this)">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="col-lg-3">  <!-- Было col-lg-4, стало col-lg-3 -->
-            <div class="cart-summary">
-                <h3>Итого</h3>
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Товаров:</span>
-                    <span th:text="${cart.totalCount}"></span>
-                </div>
-                <div class="cart-total d-flex justify-content-between">
-                    <span>Общая сумма:</span>
-                    <span th:text="${#numbers.formatDecimal(cart.totalPrice, 0, 2)} + ' ₽'"></span>
-                </div>
-                <button class="btn-checkout" onclick="checkout()">
-                    <i class="fas fa-credit-card"></i> Оформить заказ
-                </button>
-                <button class="btn btn-secondary w-100 mt-2" onclick="clearCart()">
-                    <i class="fas fa-trash-alt"></i> Очистить корзину
-                </button>
-            </div>
-        </div>
-    </div>
+	<div th:if="${cart.items != null and !cart.items.isEmpty()}" class="row">
+		<div class="col-lg-9">
+			<table class="table cart-table">
+				<thead>
+				<tr>
+					<th>Товар</th>
+					<th>Цена</th>
+					<th>Количество</th>
+					<th>Сумма</th>
+					<th></th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="item : ${cart.items}">
+					<td>
+						<div class="d-flex align-items-center gap-3">
+							<a th:href="@{/products/{id}(id=${item.productId})}" class="image-link">
+								<img th:src="${item.productImage != null ? item.productImage : '/images/images.png'}"
+									 th:alt="${item.productName}" class="cart-product-img">
+							</a>
+							<a th:href="@{/products/{id}(id=${item.productId})}" class="product-link">
+								<span th:text="${item.productName}"></span>
+								<i class="fas fa-arrow-right"></i>
+							</a>
+						</div>
+					</td>
+					<td th:text="${#numbers.formatDecimal(item.price, 0, 2)} + ' ₽'"></td>
+					<td>
+						<input type="number" class="quantity-input" th:data-id="${item.productId}"
+							   th:value="${item.quantity}" min="1" onchange="updateQuantity(this)">
+					</td>
+					<td th:text="${#numbers.formatDecimal(item.subtotal, 0, 2)} + ' ₽'"></td>
+					<td>
+						<button class="remove-btn" th:data-id="${item.productId}" onclick="removeFromCart(this)">
+							<i class="fas fa-trash-alt"></i>
+						</button>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="col-lg-3">
+			<div class="cart-summary">
+				<h3>Итого</h3>
+				<div class="d-flex justify-content-between mb-2">
+					<span>Товаров:</span>
+					<span th:text="${cart.totalCount}"></span>
+				</div>
+				<div class="cart-total d-flex justify-content-between">
+					<span>Общая сумма:</span>
+					<span th:text="${#numbers.formatDecimal(cart.totalPrice, 0, 2)} + ' ₽'"></span>
+				</div>
+				<button class="btn-checkout" onclick="checkout()">
+					<i class="fas fa-credit-card"></i> Оформить заказ
+				</button>
+				<button class="btn btn-secondary w-100 mt-2" onclick="clearCart()">
+					<i class="fas fa-trash-alt"></i> Очистить корзину
+				</button>
+			</div>
+		</div>
+	</div>
 
     <div th:if="${cart.items == null or cart.items.isEmpty()}" class="empty-cart">
         <i class="fas fa-shopping-cart"></i>

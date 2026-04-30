@@ -20,7 +20,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;  // Изменено с Integer userID на User user
+    private User user;
 
     @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
@@ -54,13 +54,11 @@ public class Order {
         item.setOrder(null);
     }
 
-    // Геттер для совместимости со старым кодом (если нужно)
     @Transient
     public Integer getUserID() {
         return user != null ? user.getId() : null;
     }
 
-    // Сеттер для совместимости со старым кодом (если нужно)
     public void setUserID(Integer userId) {
         if (userId != null) {
             User u = new User();

@@ -6,8 +6,39 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <link rel="stylesheet" th:href="@{/css/main.css}"/>
-
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+	<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
+
+		.active-filters {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-bottom: 20px;
+			padding: 10px 15px;
+			background: rgba(111,240,165,0.1);
+			border-radius: 12px;
+			border-left: 3px solid var(--neon-green);
+		}
+		.filter-tag {
+			background: rgba(111,240,165,0.2);
+			border-radius: 20px;
+			padding: 4px 12px;
+			font-size: 12px;
+			color: var(--neon-green);
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+		.filter-tag i {
+			cursor: pointer;
+			font-size: 10px;
+			transition: color 0.2s ease;
+		}
+		.filter-tag i:hover {
+			color: #ff4757;
+		}
+
         body {
             background: var(--night-dark);
             min-height: 100vh;
@@ -575,10 +606,6 @@
                 <i class="fas fa-gamepad"></i>
                 <span>Игры</span>
             </a>
-            <a href="/category/accessories" class="category-item">
-                <i class="fas fa-mouse"></i>
-                <span>Аксессуары</span>
-            </a>
         </div>
     </div>
 </div>
@@ -596,6 +623,11 @@
     </div>
 
     <div class="filters-section">
+		<!-- Активные фильтры (предпросмотр) -->
+		<div id="tempFiltersContainer" class="active-filters" style="display: none; margin-bottom: 10px; opacity: 0.7;"></div>
+		<!-- Активные фильтры (примененные) -->
+		<div id="activeFiltersContainer" class="active-filters" style="display: none;"></div>
+
         <div class="filters-title"><i class="fas fa-sliders-h"></i><span>Фильтрация телевизоров</span></div>
         <div class="filters-grid">
             <div class="filter-group">
@@ -703,71 +735,302 @@
 </div>
 
 <script th:inline="javascript">
-    const productsFromServer = /*[[${products}]]*/ [];
-    let allProducts = [], filteredProducts = [], currentPage = 1, itemsPerPage = 12, selectedRating = 0;
+	const productsFromServer = /*[[${products}]]*/ [];
+	let allProducts = [], filteredProducts = [], currentPage = 1, itemsPerPage = 12, selectedRating = 0;
 
-    function extractSizeFromName(name) {
-        if (!name) return 55;
-        const match = name.match(/(\d+)(?:\s*[",]|\s*дюйм)/i);
-        return match ? parseInt(match[1]) : 55;
-    }
+	// ========== ФУНКЦИИ ДЛЯ РАБОТЫ С СЕРВЕРОМ ==========
 
-    function extractResolutionFromName(name) {
-        if (!name) return '4K';
-        if (name.includes('8K')) return '8K';
-        if (name.includes('4K')) return '4K';
-        if (name.includes('Full HD')) return 'Full HD';
-        return '4K';
-    }
+	function getCsrfToken() {
+		return document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+	}
 
-    function extractPanelFromName(name) {
-        if (!name) return 'LED';
-        if (name.includes('OLED')) return 'OLED';
-        if (name.includes('QLED')) return 'QLED';
-        if (name.includes('Mini-LED')) return 'Mini-LED';
-        if (name.includes('NanoCell')) return 'NanoCell';
-        return 'LED';
-    }
+	function getCsrfHeader() {
+		return document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+	}
 
-    function initProducts() {
-        if (productsFromServer && productsFromServer.length > 0) {
-            allProducts = productsFromServer.map(p => ({
-                id: p.id, name: p.name, price: p.price, oldPrice: p.oldPrice,
-                rating: p.averageRating || (p.reviews && p.reviews.length > 0 ? p.reviews.reduce((sum, r) => sum + r.rating, 0) / p.reviews.length : 0),
-                image: p.fileUrl || '/images/tv-placeholder.png', brand: p.brand || 'Другое',
-                size: p.size || extractSizeFromName(p.name),
-                resolution: p.resolution || extractResolutionFromName(p.name),
-                panel: p.panel || extractPanelFromName(p.name),
-                stock: p.stock !== undefined ? p.stock : (Math.floor(Math.random() * 20) + 1),
-                badge: p.badge || (p.oldPrice ? `-${Math.round((1 - p.price / p.oldPrice) * 100)}%` : '')
-            }));
-        }
-        filteredProducts = [...allProducts];
-        renderProducts();
-        updateProductsCount();
-    }
+	function isUserAuthenticated() {
+		const csrfToken = getCsrfToken();
+		return csrfToken && csrfToken !== '';
+	}
 
-    function selectRating(rating) {
-        selectedRating = rating;
-        document.querySelectorAll('.rating-option').forEach(opt => opt.classList.remove('active'));
-        document.querySelector(`.rating-option[data-rating="${rating}"]`).classList.add('active');
-        applyFilters();
-    }
+	function showNotification(message, isError = false) {
+		const notification = document.createElement('div');
+		notification.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${message}`;
+		notification.style.cssText = `
+            position: fixed; bottom: 20px; right: 20px;
+            background: ${isError ? 'rgba(255,100,100,0.95)' : 'rgba(111,240,165,0.95)'};
+            color: ${isError ? '#fff' : '#1a1c1f'};
+            padding: 12px 20px; border-radius: 10px; z-index: 10000;
+            font-family: monospace; font-size: 14px;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        `;
+		document.body.appendChild(notification);
+		setTimeout(() => {
+			notification.style.animation = 'fadeOut 0.3s ease';
+			setTimeout(() => notification.remove(), 300);
+		}, 3000);
+	}
 
-    function renderProducts() {
-        const container = document.getElementById('productsGrid'), emptyState = document.getElementById('emptyState');
-        if (filteredProducts.length === 0) {
-            emptyState.style.display = 'block';
-            container.innerHTML = '';
-            document.getElementById('pagination').innerHTML = '';
-            return;
-        }
-        emptyState.style.display = 'none';
-        const start = (currentPage - 1) * itemsPerPage, end = start + itemsPerPage;
-        const pageProducts = filteredProducts.slice(start, end);
-        container.innerHTML = pageProducts.map(product => `
+	function showAuthNotification() {
+		showNotification('Для выполнения этого действия необходимо авторизоваться', true);
+		setTimeout(() => {
+			window.location.href = '/login';
+		}, 1500);
+	}
+
+	function updateCartCount() {
+		if (!isUserAuthenticated()) {
+			const cartCount = document.getElementById('cartCount');
+			if (cartCount) cartCount.textContent = '0';
+			return;
+		}
+		fetch('/cart/count')
+				.then(response => response.json())
+				.then(data => {
+					const cartCount = document.getElementById('cartCount');
+					if (cartCount) cartCount.textContent = data.count || 0;
+				})
+				.catch(error => console.error('Ошибка загрузки корзины:', error));
+	}
+
+	function updateFavoritesCount() {
+		if (!isUserAuthenticated()) {
+			const favoritesCount = document.getElementById('favoritesCount');
+			if (favoritesCount) favoritesCount.textContent = '0';
+			return;
+		}
+		fetch('/favorites/count')
+				.then(response => response.json())
+				.then(count => {
+					const favoritesCount = document.getElementById('favoritesCount');
+					if (favoritesCount) favoritesCount.textContent = count;
+				})
+				.catch(error => console.error('Ошибка загрузки избранного:', error));
+	}
+
+	function updateFavoriteButtons() {
+		if (!isUserAuthenticated()) return;
+
+		fetch('/favorites/ids')
+				.then(response => response.json())
+				.then(favoriteIds => {
+					document.querySelectorAll('.favorite-btn').forEach(btn => {
+						const productId = parseInt(btn.getAttribute('data-id'));
+						const icon = btn.querySelector('i');
+						if (favoriteIds && favoriteIds.includes(productId)) {
+							icon.className = '';
+							icon.classList.add('fas', 'fa-heart');
+							btn.classList.add('active');
+						} else {
+							icon.className = '';
+							icon.classList.add('far', 'fa-heart');
+							btn.classList.remove('active');
+						}
+					});
+				})
+				.catch(error => console.error('Ошибка загрузки избранного:', error));
+	}
+
+	function toggleFavorite(button) {
+		event.stopPropagation();
+		if (!isUserAuthenticated()) {
+			showAuthNotification();
+			return;
+		}
+
+		const productId = button.getAttribute('data-id');
+		const icon = button.querySelector('i');
+		const isActive = button.classList.contains('active');
+		const url = isActive ? `/favorites/remove/${productId}` : `/favorites/add/${productId}`;
+		const method = isActive ? 'DELETE' : 'POST';
+
+		const csrfToken = getCsrfToken();
+		const csrfHeader = getCsrfHeader();
+		const headers = { 'Content-Type': 'application/json' };
+		if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+		button.disabled = true;
+		const originalIconClass = icon.className;
+		icon.className = 'fas fa-spinner fa-pulse';
+
+		fetch(url, { method: method, headers: headers })
+				.then(response => response.text())
+				.then(result => {
+					if (result === 'added') {
+						icon.className = '';
+						icon.classList.add('fas', 'fa-heart');
+						button.classList.add('active');
+						showNotification('Телевизор добавлен в избранное!');
+						updateFavoritesCount();
+					} else if (result === 'removed') {
+						icon.className = '';
+						icon.classList.add('far', 'fa-heart');
+						button.classList.remove('active');
+						showNotification('Телевизор удалён из избранного');
+						updateFavoritesCount();
+					} else if (result === 'exists') {
+						icon.className = originalIconClass;
+						showNotification('Телевизор уже в избранном', true);
+					} else if (result === 'unauthorized') {
+						showAuthNotification();
+					} else {
+						icon.className = originalIconClass;
+						showNotification('Произошла ошибка', true);
+					}
+					button.disabled = false;
+				})
+				.catch(error => {
+					console.error('Ошибка:', error);
+					icon.className = originalIconClass;
+					button.disabled = false;
+					showNotification('Для выполнения этого действия необходимо авторизоваться', true);
+				});
+	}
+
+	function addToCart(productId) {
+		event.stopPropagation();
+		if (!isUserAuthenticated()) {
+			showAuthNotification();
+			return;
+		}
+
+		const csrfToken = getCsrfToken();
+		const csrfHeader = getCsrfHeader();
+		const headers = { 'Content-Type': 'application/json' };
+		if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+		const btn = event.target.closest('button');
+		const originalText = btn.innerHTML;
+		btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+		btn.disabled = true;
+
+		fetch('/cart/add', {
+			method: 'POST',
+			headers: headers,
+			body: JSON.stringify({ productId: productId, quantity: 1 })
+		})
+				.then(response => response.json())
+				.then(data => {
+					if (data.success) {
+						updateCartCount();
+						showNotification(data.message);
+						btn.innerHTML = '<i class="fas fa-check"></i> В корзине!';
+						setTimeout(() => {
+							btn.innerHTML = originalText;
+							btn.disabled = false;
+						}, 1500);
+					} else if (data.redirect) {
+						showAuthNotification();
+					} else {
+						showNotification(data.message || 'Ошибка', true);
+						btn.innerHTML = originalText;
+						btn.disabled = false;
+					}
+				})
+				.catch(error => {
+					console.error('Ошибка:', error);
+					showNotification('Ошибка соединения', true);
+					btn.innerHTML = originalText;
+					btn.disabled = false;
+				});
+	}
+
+	function searchProducts() {
+		const query = document.getElementById('searchInput').value.trim();
+		if (query) {
+			window.location.href = '/category/search?query=' + encodeURIComponent(query);
+		}
+	}
+
+	// ========== ФУНКЦИИ ДЛЯ ФИЛЬТРАЦИИ И ОТОБРАЖЕНИЯ ==========
+
+	function extractSizeFromName(name) {
+		if (!name) return 55;
+		const match = name.match(/(\d+)(?:\s*[",]|\s*дюйм)/i);
+		return match ? parseInt(match[1]) : 55;
+	}
+
+	function extractResolutionFromName(name) {
+		if (!name) return '4K';
+		if (name.includes('8K')) return '8K';
+		if (name.includes('4K')) return '4K';
+		if (name.includes('Full HD')) return 'Full HD';
+		return '4K';
+	}
+
+	function extractPanelFromName(name) {
+		if (!name) return 'LED';
+		if (name.includes('OLED')) return 'OLED';
+		if (name.includes('QLED')) return 'QLED';
+		if (name.includes('Mini-LED')) return 'Mini-LED';
+		if (name.includes('NanoCell')) return 'NanoCell';
+		return 'LED';
+	}
+
+	function initProducts() {
+		console.log('Products from server:', productsFromServer);
+
+		if (productsFromServer && productsFromServer.length > 0) {
+			allProducts = productsFromServer.map(p => {
+				// Логируем для отладки
+				console.log('Product image field:', {
+					id: p.id,
+					name: p.name,
+					fileurl: p.fileurl,
+					fileUrl: p.fileUrl,
+					image: p.image
+				});
+
+				return {
+					id: p.id,
+					name: p.name,
+					price: p.price,
+					oldPrice: p.oldPrice,
+					rating: p.averageRating || 0,
+					// Проверяем все возможные поля для изображения
+					image: p.fileurl || p.fileUrl || p.image || '/images/tv-placeholder.png',
+					brand: p.brand || 'Другое',
+					size: p.size || extractSizeFromName(p.name),
+					resolution: p.resolution || extractResolutionFromName(p.name),
+					panel: p.panel || extractPanelFromName(p.name),
+					stock: p.stock !== undefined ? p.stock : 10,
+					badge: p.badge || (p.oldPrice ? `-${Math.round((1 - p.price / p.oldPrice) * 100)}%` : '')
+				};
+			});
+		}
+
+		console.log('All products after mapping:', allProducts);
+
+		filteredProducts = [...allProducts];
+		renderProducts();
+		updateProductsCount();
+	}
+
+	function selectRating(rating) {
+		selectedRating = rating;
+		document.querySelectorAll('.rating-option').forEach(opt => opt.classList.remove('active'));
+		document.querySelector(`.rating-option[data-rating="${rating}"]`).classList.add('active');
+		applyFilters();
+	}
+
+	function renderProducts() {
+		const container = document.getElementById('productsGrid'), emptyState = document.getElementById('emptyState');
+		if (filteredProducts.length === 0) {
+			emptyState.style.display = 'block';
+			container.innerHTML = '';
+			document.getElementById('pagination').innerHTML = '';
+			return;
+		}
+		emptyState.style.display = 'none';
+		const start = (currentPage - 1) * itemsPerPage, end = start + itemsPerPage;
+		const pageProducts = filteredProducts.slice(start, end);
+		container.innerHTML = pageProducts.map(product => `
             <div class="product-card" onclick="window.location.href='/products/${product.id}'">
                 <div class="product-badge">${product.badge || 'Телевизор'}</div>
+                <button class="favorite-btn" data-id="${product.id}" onclick="event.stopPropagation(); toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </button>
                 <img src="${product.image}" alt="${product.name}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23252529\'/%3E%3Ctext x=\'100\' y=\'110\' text-anchor=\'middle\' fill=\'%236FF0A5\' font-size=\'14\'%3ETV%3C/text%3E%3C/svg%3E'">
                 <h3 class="product-title">${product.name}</h3>
                 <div class="product-specs">
@@ -780,176 +1043,169 @@
                 <button class="btn btn-success" onclick="event.stopPropagation(); addToCart(${product.id})"><i class="fas fa-shopping-cart"></i> В корзину</button>
             </div>
         `).join('');
-        renderPagination();
-    }
+		renderPagination();
+		updateFavoriteButtons();
+	}
 
-    function renderPagination() {
-        const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-        const paginationContainer = document.getElementById('pagination');
-        if (totalPages <= 1) {
-            paginationContainer.innerHTML = '';
-            return;
-        }
-        let html = '';
-        if (currentPage > 1) html += `<a href="#" class="page-link" onclick="changePage(${currentPage - 1}); return false;"><i class="fas fa-chevron-left"></i></a>`;
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1))
-                html += `<a href="#" class="page-link ${i === currentPage ? 'active' : ''}" onclick="changePage(${i}); return false;">${i}</a>`;
-            else if (i === currentPage - 2 || i === currentPage + 2)
-                html += `<span class="page-link disabled">...</span>`;
-        }
-        if (currentPage < totalPages) html += `<a href="#" class="page-link" onclick="changePage(${currentPage + 1}); return false;"><i class="fas fa-chevron-right"></i></a>`;
-        paginationContainer.innerHTML = html;
-    }
+	function renderPagination() {
+		const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+		const paginationContainer = document.getElementById('pagination');
+		if (totalPages <= 1) {
+			paginationContainer.innerHTML = '';
+			return;
+		}
+		let html = '';
+		if (currentPage > 1) html += `<a href="#" class="page-link" onclick="changePage(${currentPage - 1}); return false;"><i class="fas fa-chevron-left"></i></a>`;
+		for (let i = 1; i <= totalPages; i++) {
+			if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1))
+				html += `<a href="#" class="page-link ${i === currentPage ? 'active' : ''}" onclick="changePage(${i}); return false;">${i}</a>`;
+			else if (i === currentPage - 2 || i === currentPage + 2)
+				html += `<span class="page-link disabled">...</span>`;
+		}
+		if (currentPage < totalPages) html += `<a href="#" class="page-link" onclick="changePage(${currentPage + 1}); return false;"><i class="fas fa-chevron-right"></i></a>`;
+		paginationContainer.innerHTML = html;
+	}
 
-    function changePage(page) {
-        currentPage = page;
-        renderProducts();
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
+	function changePage(page) {
+		currentPage = page;
+		renderProducts();
+		window.scrollTo({top: 0, behavior: 'smooth'});
+	}
 
-    function applyFilters() {
-        const brand = document.getElementById('brandFilter').value;
-        const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
-        const priceMax = parseFloat(document.getElementById('priceMax').value) || Infinity;
-        const size = document.getElementById('sizeFilter').value;
-        const resolution = document.getElementById('resolutionFilter').value;
-        const panel = document.getElementById('panelFilter').value;
-        const stock = document.getElementById('stockFilter').value;
-        filteredProducts = allProducts.filter(product => {
-            if (brand !== 'all' && product.brand !== brand) return false;
-            if (product.price < priceMin || product.price > priceMax) return false;
-            if (size !== 'all' && product.size < parseInt(size)) return false;
-            if (resolution !== 'all' && product.resolution !== resolution) return false;
-            if (panel !== 'all' && product.panel !== panel) return false;
-            if (selectedRating > 0 && product.rating < selectedRating) return false;
-            if (stock === 'in_stock' && product.stock <= 0) return false;
-            if (stock === 'out_of_stock' && product.stock > 0) return false;
-            return true;
-        });
-        applySort();
-        currentPage = 1;
-        renderProducts();
-        updateProductsCount();
-    }
+	function applyFilters() {
+		const brand = document.getElementById('brandFilter').value;
+		const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
+		const priceMax = parseFloat(document.getElementById('priceMax').value) || Infinity;
+		const size = document.getElementById('sizeFilter').value;
+		const resolution = document.getElementById('resolutionFilter').value;
+		const panel = document.getElementById('panelFilter').value;
+		const stock = document.getElementById('stockFilter').value;
 
-    function applySort() {
-        const sortValue = document.getElementById('sortSelect').value;
-        switch (sortValue) {
-            case 'price_asc':
-                filteredProducts.sort((a, b) => a.price - b.price);
-                break;
-            case 'price_desc':
-                filteredProducts.sort((a, b) => b.price - a.price);
-                break;
-            case 'rating_desc':
-                filteredProducts.sort((a, b) => b.rating - a.rating);
-                break;
-            case 'name_asc':
-                filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
-                break;
-        }
-    }
+		filteredProducts = allProducts.filter(product => {
+			if (brand !== 'all' && product.brand !== brand) return false;
+			if (product.price < priceMin || product.price > priceMax) return false;
+			if (size !== 'all' && product.size < parseInt(size)) return false;
+			if (resolution !== 'all' && product.resolution !== resolution) return false;
+			if (panel !== 'all' && product.panel !== panel) return false;
+			if (selectedRating > 0 && product.rating < selectedRating) return false;
+			if (stock === 'in_stock' && product.stock <= 0) return false;
+			if (stock === 'out_of_stock' && product.stock > 0) return false;
+			return true;
+		});
+		applySort();
+		currentPage = 1;
+		renderProducts();
+		updateProductsCount();
+	}
 
-    function sortProducts() {
-        applySort();
-        currentPage = 1;
-        renderProducts();
-    }
+	function applySort() {
+		const sortValue = document.getElementById('sortSelect').value;
+		switch (sortValue) {
+			case 'price_asc':
+				filteredProducts.sort((a, b) => a.price - b.price);
+				break;
+			case 'price_desc':
+				filteredProducts.sort((a, b) => b.price - a.price);
+				break;
+			case 'rating_desc':
+				filteredProducts.sort((a, b) => b.rating - a.rating);
+				break;
+			case 'name_asc':
+				filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+				break;
+		}
+	}
 
-    function resetFilters() {
-        document.getElementById('brandFilter').value = 'all';
-        document.getElementById('priceMin').value = '0';
-        document.getElementById('priceMax').value = '';
-        document.getElementById('sizeFilter').value = 'all';
-        document.getElementById('resolutionFilter').value = 'all';
-        document.getElementById('panelFilter').value = 'all';
-        document.getElementById('stockFilter').value = 'all';
-        selectedRating = 0;
-        document.querySelectorAll('.rating-option').forEach(opt => opt.classList.remove('active'));
-        document.querySelector('.rating-option[data-rating="0"]').classList.add('active');
-        filteredProducts = [...allProducts];
-        currentPage = 1;
-        renderProducts();
-        updateProductsCount();
-    }
+	function sortProducts() {
+		applySort();
+		currentPage = 1;
+		renderProducts();
+	}
 
-    function updateProductsCount() {
-        document.getElementById('productsCount').textContent = filteredProducts.length;
-    }
+	function resetFilters() {
+		document.getElementById('brandFilter').value = 'all';
+		document.getElementById('priceMin').value = '0';
+		document.getElementById('priceMax').value = '';
+		document.getElementById('sizeFilter').value = 'all';
+		document.getElementById('resolutionFilter').value = 'all';
+		document.getElementById('panelFilter').value = 'all';
+		document.getElementById('stockFilter').value = 'all';
+		selectedRating = 0;
+		document.querySelectorAll('.rating-option').forEach(opt => opt.classList.remove('active'));
+		document.querySelector('.rating-option[data-rating="0"]').classList.add('active');
+		filteredProducts = [...allProducts];
+		currentPage = 1;
+		renderProducts();
+		updateProductsCount();
+	}
 
-    function addToCart(productId) {
-        const product = allProducts.find(p => p.id === productId);
-        if (product) {
-            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            cart.push({id: product.id, name: product.name, price: product.price});
-            localStorage.setItem('cart', JSON.stringify(cart));
-            const btn = event.target.closest('button');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i> Добавлено!';
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-            }, 1500);
-        }
-    }
+	function updateProductsCount() {
+		document.getElementById('productsCount').textContent = filteredProducts.length;
+	}
 
-    function addBackgroundElements() {
-        if (!document.querySelector('.bg-blur-circle')) {
-            const circles = [{className: 'bg-circle-1', size: 600, top: -200, left: -200}, {
-                className: 'bg-circle-2',
-                size: 550,
-                bottom: -150,
-                right: -150
-            }, {className: 'bg-circle-3', size: 450, top: '60%', left: '10%'}, {
-                className: 'bg-circle-4',
-                size: 500,
-                bottom: '20%',
-                right: '20%'
-            }];
-            circles.forEach(circle => {
-                const div = document.createElement('div');
-                div.className = `bg-blur-circle ${circle.className}`;
-                if (circle.size) div.style.width = `${circle.size}px`;
-                if (circle.size) div.style.height = `${circle.size}px`;
-                if (circle.top) div.style.top = circle.top;
-                if (circle.left) div.style.left = circle.left;
-                if (circle.bottom) div.style.bottom = circle.bottom;
-                if (circle.right) div.style.right = circle.right;
-                document.body.appendChild(div);
-            });
-        }
-        if (!document.querySelector('.soft-glow')) {
-            const glow = document.createElement('div');
-            glow.className = 'soft-glow';
-            document.body.appendChild(glow);
-        }
-        if (!document.querySelector('.stars')) {
-            const stars = document.createElement('div');
-            stars.className = 'stars';
-            stars.id = 'stars';
-            document.body.appendChild(stars);
-        }
-    }
+	function addBackgroundElements() {
+		if (!document.querySelector('.bg-blur-circle')) {
+			const circles = [{className: 'bg-circle-1', size: 600, top: -200, left: -200}, {
+				className: 'bg-circle-2',
+				size: 550,
+				bottom: -150,
+				right: -150
+			}, {className: 'bg-circle-3', size: 450, top: '60%', left: '10%'}, {
+				className: 'bg-circle-4',
+				size: 500,
+				bottom: '20%',
+				right: '20%'
+			}];
+			circles.forEach(circle => {
+				const div = document.createElement('div');
+				div.className = `bg-blur-circle ${circle.className}`;
+				if (circle.size) div.style.width = `${circle.size}px`;
+				if (circle.size) div.style.height = `${circle.size}px`;
+				if (circle.top) div.style.top = circle.top;
+				if (circle.left) div.style.left = circle.left;
+				if (circle.bottom) div.style.bottom = circle.bottom;
+				if (circle.right) div.style.right = circle.right;
+				document.body.appendChild(div);
+			});
+		}
+		if (!document.querySelector('.soft-glow')) {
+			const glow = document.createElement('div');
+			glow.className = 'soft-glow';
+			document.body.appendChild(glow);
+		}
+		if (!document.querySelector('.stars')) {
+			const stars = document.createElement('div');
+			stars.className = 'stars';
+			stars.id = 'stars';
+			document.body.appendChild(stars);
+		}
+	}
 
-    function createStars() {
-        const container = document.getElementById('stars');
-        if (!container) return;
-        for (let i = 0; i < 80; i++) {
-            const star = document.createElement('div');
-            const rand = Math.random();
-            star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 5 + 's';
-            container.appendChild(star);
-        }
-    }
+	function createStars() {
+		const container = document.getElementById('stars');
+		if (!container) return;
+		for (let i = 0; i < 80; i++) {
+			const star = document.createElement('div');
+			const rand = Math.random();
+			star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
+			star.style.left = Math.random() * 100 + '%';
+			star.style.top = Math.random() * 100 + '%';
+			star.style.animationDelay = Math.random() * 5 + 's';
+			container.appendChild(star);
+		}
+	}
 
-    document.addEventListener('DOMContentLoaded', () => {
-        addBackgroundElements();
-        createStars();
-        initProducts();
-    });
+	document.addEventListener('DOMContentLoaded', () => {
+		addBackgroundElements();
+		createStars();
+		initProducts();
+		updateCartCount();
+		updateFavoritesCount();
+
+		document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+			if (e.key === 'Enter') searchProducts();
+		});
+	});
 </script>
 </body>
 </html>

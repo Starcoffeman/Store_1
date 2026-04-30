@@ -54,6 +54,8 @@ public class SecurityConfig {
                         // ========== НОВЫЕ СТРАНИЦЫ ФУТЕРА (ОБЩЕДОСТУПНЫЕ) ==========
                         .requestMatchers("/delivery", "/returns", "/warranty", "/faq").permitAll()
                         .requestMatchers("/about", "/contacts", "/blog", "/vacancies").permitAll()
+                        .requestMatchers("/users/reset-password").permitAll()
+
                         .requestMatchers("/news/**").permitAll()
                         .requestMatchers("/cart/count", "/favorites/count").permitAll()
                         // Блог - публичный доступ

@@ -87,4 +87,8 @@ public class UserService {
         }
         return false;
     }
+
+    public User findByUsernameAndEmail(String username, String email) {
+        return userRepository.findByUsernameAndEmail(username, email);
+    }
 }

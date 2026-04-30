@@ -1,524 +1,82 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Смартфоны | ТехноШок</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" th:href="@{/css/main.css}" />
-
-    <style>
-        /* Специфичные стили для страницы смартфонов */
-        body {
-            background: var(--night-dark);
-            min-height: 100vh;
-        }
-
-        .catalog-wrapper {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-
-        }
-
-        /* Хедер категории */
-        .category-header {
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-            border-radius: 24px;
-            padding: 40px;
-            background: linear-gradient(135deg, rgba(111, 240, 165, 0.1), rgba(111, 240, 165, 0.05));
-            border: 1px solid rgba(111, 240, 165, 0.2);
-        }
-
-        .category-header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .category-header h1 i {
-            color: var(--neon-green);
-            font-size: 2rem;
-        }
-
-        .category-header p {
-            color: var(--off-white);
-            opacity: 0.8;
-            font-size: 1rem;
-        }
-
-        .category-stats {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .category-stat {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 8px 16px;
-            font-size: 13px;
-        }
-
-        .category-stat i {
-            color: var(--neon-green);
-            margin-right: 6px;
-        }
-
-        /* Фильтры */
-        .filters-section {
-            background: rgba(37, 39, 43, 0.85);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(111, 240, 165, 0.2);
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .filters-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(111, 240, 165, 0.2);
-        }
-
-        .filters-title i {
-            color: var(--neon-green);
-            font-size: 1.2rem;
-        }
-
-        .filters-title span {
-            font-weight: 600;
-            color: var(--white);
-            font-size: 1.1rem;
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .filter-group label {
-            font-size: 12px;
-            color: var(--off-white);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .filter-group label i {
-            margin-right: 6px;
-            color: var(--neon-green);
-        }
-
-        .filter-group select,
-        .filter-group input {
-            background: rgba(37, 39, 43, 0.9);
-            border: 1px solid rgba(111, 240, 165, 0.3);
-            border-radius: 10px;
-            padding: 10px 12px;
-            color: var(--white);
-            font-size: 14px;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-
-        .filter-group select:focus,
-        .filter-group input:focus {
-            outline: none;
-            border-color: var(--neon-green);
-            box-shadow: 0 0 0 2px rgba(111, 240, 165, 0.2);
-        }
-
-        .filter-group select option {
-            background: var(--night-dark);
-        }
-
-        /* Диапазон цен */
-        .price-range {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .price-input-wrapper {
-            position: relative;
-            flex: 1;
-        }
-
-        .price-input-wrapper i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--neon-green);
-            font-size: 12px;
-            z-index: 1;
-        }
-
-        .price-input-wrapper input {
-            width: 100%;
-            padding: 10px 12px 10px 30px;
-            background: rgba(37, 39, 43, 0.9);
-            border: 1px solid rgba(111, 240, 165, 0.3);
-            border-radius: 10px;
-            color: var(--white);
-            font-size: 14px;
-        }
-
-        .price-input-wrapper input::-webkit-inner-spin-button,
-        .price-input-wrapper input::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .price-range-separator {
-            color: var(--off-white);
-            font-size: 14px;
-            opacity: 0.6;
-        }
-
-        /* Выбор характеристик */
-        .specs-filter {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 5px;
-        }
-
-        .spec-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(37, 39, 43, 0.9);
-            border: 1px solid rgba(111, 240, 165, 0.3);
-            border-radius: 30px;
-            padding: 6px 14px;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            font-size: 13px;
-        }
-
-        .spec-checkbox:hover {
-            border-color: var(--neon-green);
-            background: rgba(111, 240, 165, 0.15);
-        }
-
-        .spec-checkbox input {
-            margin: 0;
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            accent-color: var(--neon-green);
-        }
-
-        /* Рейтинг */
-        .rating-filter {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .rating-option {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(37, 39, 43, 0.9);
-            border: 1px solid rgba(111, 240, 165, 0.3);
-            border-radius: 30px;
-            padding: 6px 14px;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-
-        .rating-option:hover {
-            border-color: var(--neon-green);
-            background: rgba(111, 240, 165, 0.1);
-        }
-
-        .rating-option.active {
-            background: var(--neon-green);
-            border-color: var(--neon-green);
-        }
-
-        .rating-option.active span {
-            color: var(--night-dark);
-        }
-
-        .rating-stars-small {
-            color: #ffc107;
-            font-size: 11px;
-            letter-spacing: 1px;
-        }
-
-        /* Кнопки */
-        .filter-actions {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        .btn-filter {
-            background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
-            color: var(--night-dark);
-            border: none;
-            border-radius: 10px;
-            padding: 10px 20px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-
-        .btn-filter:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-neon);
-        }
-
-        .btn-reset {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--off-white);
-            border: 1px solid rgba(111, 240, 165, 0.3);
-            border-radius: 10px;
-            padding: 10px 20px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-
-        .btn-reset:hover {
-            background: rgba(111, 240, 165, 0.1);
-            color: var(--neon-green);
-        }
-
-        /* Результаты */
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .results-count {
-            color: var(--off-white);
-            font-size: 14px;
-        }
-
-        .results-count span {
-            color: var(--neon-green);
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .sort-select {
-            background: rgba(37, 39, 43, 0.9);
-            border: 1px solid rgba(111, 240, 165, 0.3);
-            border-radius: 10px;
-            padding: 8px 15px;
-            color: var(--white);
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        /* Сетка товаров */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .product-card {
-            background: rgba(37, 39, 43, 0.9);
-            border-radius: 16px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            border: 1px solid rgba(111, 240, 165, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--neon-green);
-            box-shadow: var(--shadow-neon);
-        }
-
-        .product-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: var(--neon-green);
-            color: var(--night-dark);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: bold;
-            z-index: 1;
-            text-transform: uppercase;
-        }
-
-        .product-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: contain;
-            margin-bottom: 15px;
-            transition: transform var(--transition-normal);
-        }
-
-        .product-card:hover img {
-            transform: scale(1.05);
-        }
-
-        .product-title {
-            font-size: 1rem;
-            margin: 10px 0;
-            height: 45px;
-            overflow: hidden;
-            color: var(--white);
-            font-weight: 500;
-        }
-
-        .product-specs {
-            display: flex;
-            gap: 10px;
-            font-size: 11px;
-            color: var(--off-white);
-            opacity: 0.7;
-            margin: 8px 0;
-            flex-wrap: wrap;
-        }
-
-        .product-specs span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .product-specs i {
-            font-size: 10px;
-            color: var(--neon-green);
-        }
-
-        .product-rating {
-            color: #ffc107;
-            margin: 10px 0;
-            font-size: 12px;
-        }
-
-        .product-price {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--neon-green);
-            margin: 10px 0;
-        }
-
-        .product-old-price {
-            font-size: 0.85rem;
-            text-decoration: line-through;
-            opacity: 0.6;
-            margin-left: 8px;
-            color: var(--off-white);
-        }
-
-        .product-card .btn-success {
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px;
-            font-size: 12px;
-        }
-
-        /* Пагинация */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        .page-link {
-            background: rgba(37, 39, 43, 0.9);
-            border: 1px solid rgba(111, 240, 165, 0.3);
-            color: var(--off-white);
-            padding: 8px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: all var(--transition-fast);
-            font-size: 14px;
-        }
-
-        .page-link:hover {
-            background: rgba(111, 240, 165, 0.1);
-            color: var(--neon-green);
-            transform: translateY(-2px);
-        }
-
-        .page-link.active {
-            background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark));
-            color: var(--night-dark);
-            border-color: var(--neon-green);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: var(--off-white);
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            color: var(--neon-green);
-            opacity: 0.5;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 1200px) {
-            .filters-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .filters-grid {
-                grid-template-columns: 1fr;
-            }
-            .filter-actions {
-                flex-direction: column;
-            }
-            .filter-actions button {
-                width: 100%;
-            }
-            .category-header {
-                padding: 25px;
-            }
-            .category-header h1 {
-                font-size: 1.8rem;
-            }
-            .products-grid {
-                grid-template-columns: 1fr;
-            }
-            .price-range {
-                flex-direction: row;
-            }
-        }
-    </style>
+	<meta charset="UTF-8">
+	<title>Смартфоны | ТехноШок</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+	<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+	<link rel="stylesheet" th:href="@{/css/main.css}" />
+
+	<style>
+		body { background: var(--night-dark); min-height: 100vh; }
+		.catalog-wrapper { max-width: 1400px; margin: 0 auto; padding: 20px; }
+		.category-header { margin-bottom: 30px; border-radius: 24px; padding: 40px; background: linear-gradient(135deg, rgba(111,240,165,0.1), rgba(111,240,165,0.05)); border: 1px solid rgba(111,240,165,0.2); }
+		.category-header h1 { font-size: 2.5rem; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+		.category-header h1 i { color: var(--neon-green); font-size: 2rem; }
+		.category-header p { color: var(--off-white); opacity: 0.8; font-size: 1rem; }
+		.category-stats { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+		.category-stat { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 8px 16px; font-size: 13px; }
+		.category-stat i { color: var(--neon-green); margin-right: 6px; }
+		.filters-section { background: rgba(37,39,43,0.85); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(111,240,165,0.2); padding: 25px; margin-bottom: 30px; }
+		.filters-title { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(111,240,165,0.2); }
+		.filters-title i { color: var(--neon-green); font-size: 1.2rem; }
+		.filters-title span { font-weight: 600; color: var(--white); font-size: 1.1rem; }
+		.filters-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+		.filter-group { display: flex; flex-direction: column; gap: 8px; }
+		.filter-group label { font-size: 12px; color: var(--off-white); font-weight: 500; text-transform: uppercase; }
+		.filter-group label i { margin-right: 6px; color: var(--neon-green); }
+		.filter-group select, .filter-group input { background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); border-radius: 10px; padding: 10px 12px; color: var(--white); font-size: 14px; cursor: pointer; }
+		.price-range { display: flex; gap: 10px; align-items: center; }
+		.price-input-wrapper { position: relative; flex: 1; }
+		.price-input-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--neon-green); font-size: 12px; }
+		.price-input-wrapper input { width: 100%; padding: 10px 12px 10px 30px; }
+		.specs-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+		.spec-checkbox { display: flex; align-items: center; gap: 8px; background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); border-radius: 30px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+		.spec-checkbox:hover { border-color: var(--neon-green); background: rgba(111,240,165,0.15); }
+		.spec-checkbox input { margin: 0; width: 16px; height: 16px; accent-color: var(--neon-green); }
+		.rating-filter { display: flex; gap: 8px; flex-wrap: wrap; }
+		.rating-option { display: flex; align-items: center; gap: 5px; background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); border-radius: 30px; padding: 6px 14px; cursor: pointer; }
+		.rating-option.active { background: var(--neon-green); border-color: var(--neon-green); }
+		.rating-option.active span { color: var(--night-dark); }
+		.rating-stars-small { color: #ffc107; font-size: 11px; letter-spacing: 1px; }
+		.filter-actions { display: flex; gap: 10px; align-items: flex-end; grid-column: span 4; }
+		.btn-filter { background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark)); color: var(--night-dark); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
+		.btn-reset { background: rgba(255,255,255,0.1); color: var(--off-white); border: 1px solid rgba(111,240,165,0.3); border-radius: 10px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
+		.active-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; padding: 10px 15px; background: rgba(111,240,165,0.1); border-radius: 12px; border-left: 3px solid var(--neon-green); }
+		.filter-tag { background: rgba(111,240,165,0.2); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--neon-green); display: inline-flex; align-items: center; gap: 8px; }
+		.filter-tag i { cursor: pointer; font-size: 10px; }
+		.filter-tag i:hover { color: #ff4757; }
+		.results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+		.results-count { color: var(--off-white); font-size: 14px; }
+		.results-count span { color: var(--neon-green); font-weight: bold; font-size: 1.2rem; }
+		.sort-select { background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); border-radius: 10px; padding: 8px 15px; color: var(--white); font-size: 13px; cursor: pointer; }
+		.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+		.product-card { background: rgba(37,39,43,0.9); border-radius: 16px; padding: 20px; cursor: pointer; transition: all var(--transition-normal); border: 1px solid rgba(111,240,165,0.2); position: relative; }
+		.product-card:hover { transform: translateY(-5px); border-color: var(--neon-green); box-shadow: var(--shadow-neon); }
+		.product-badge { position: absolute; top: 15px; left: 15px; background: var(--neon-green); color: var(--night-dark); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; z-index: 1; }
+		.product-card img { width: 100%; height: 200px; object-fit: contain; margin-bottom: 15px; }
+		.product-brand { font-size: 11px; color: var(--neon-green); margin-bottom: 5px; }
+		.product-title { font-size: 1rem; margin: 10px 0; height: 45px; overflow: hidden; color: var(--white); font-weight: 500; }
+		.product-specs { display: flex; gap: 10px; font-size: 11px; color: var(--off-white); opacity: 0.7; margin: 8px 0; flex-wrap: wrap; }
+		.product-specs span { display: flex; align-items: center; gap: 4px; }
+		.product-specs i { font-size: 10px; color: var(--neon-green); }
+		.product-rating { color: #ffc107; margin: 10px 0; font-size: 12px; }
+		.product-price { font-size: 1.2rem; font-weight: bold; color: var(--neon-green); margin: 10px 0; }
+		.product-old-price { font-size: 0.85rem; text-decoration: line-through; opacity: 0.6; margin-left: 8px; color: var(--off-white); }
+		.product-card .btn-success { width: 100%; margin-top: 10px; padding: 10px; font-size: 12px; }
+		.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; flex-wrap: wrap; }
+		.page-link { background: rgba(37,39,43,0.9); border: 1px solid rgba(111,240,165,0.3); color: var(--off-white); padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 14px; }
+		.page-link.active { background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark)); color: var(--night-dark); }
+		.empty-state { text-align: center; padding: 80px 20px; color: var(--off-white); }
+		.empty-state i { font-size: 4rem; color: var(--neon-green); opacity: 0.5; margin-bottom: 20px; }
+		@media (max-width: 1200px) { .filters-grid { grid-template-columns: repeat(2, 1fr); } }
+		@media (max-width: 768px) { .filters-grid { grid-template-columns: 1fr; } .filter-actions { flex-direction: column; } .category-header { padding: 25px; } .products-grid { grid-template-columns: 1fr; } }
+		.favorite-btn { background: none; border: none; color: var(--off-white); cursor: pointer; font-size: 1.2rem; position: absolute; top: 15px; right: 15px; z-index: 2; }
+		.favorite-btn:hover { transform: scale(1.1); }
+		.favorite-btn.active { color: #ff4757; }
+	</style>
 </head>
 <body>
 <!-- Фоновые элементы -->
@@ -531,413 +89,676 @@
 
 <!-- Верхняя панель -->
 <div class="top-bar">
-    <div class="container">
-        <div class="city-selector">
-            <i class="fas fa-map-marker-alt"></i> Москва
-            <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
-        </div>
-        <div class="phone-number">
-            <i class="fas fa-phone-alt"></i> +7 (495) 780-20-02
-        </div>
-    </div>
+	<div class="container">
+		<div class="city-selector"><i class="fas fa-map-marker-alt"></i> Москва <i class="fas fa-chevron-down" style="font-size:10px;"></i></div>
+		<div class="phone-number"><i class="fas fa-phone-alt"></i> +7 (495) 780-20-02</div>
+	</div>
 </div>
 
 <!-- Основной хедер -->
 <div class="main-header">
-    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-        <a href="/" class="logo">
-            <div class="logo-icon"><i class="fas fa-laptop-code"></i></div>
-            <span>ТехноШок</span>
-        </a>
-
-        <div class="search-wrapper">
-            <input type="text" class="search-input" placeholder="Поиск товаров, брендов и категорий..." id="searchInput">
-            <button class="search-button" onclick="searchProducts()">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
-
-        <div class="header-actions">
-            <a href="/favorites" class="header-action">
-                <i class="fas fa-heart"></i>
-                <span>Избранное</span>
-                <span class="favorites-badge" id="favoritesCount">0</span>
-            </a>
-            <a href="/cart" class="header-action">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Корзина</span>
-                <span class="cart-badge" id="cartCount">0</span>
-            </a>
-            <a sec:authorize="isAuthenticated()" href="/users/profile" class="header-action">
-                <i class="fas fa-user"></i>
-                <span>Профиль</span>
-            </a>
-            <a sec:authorize="!isAuthenticated()" href="/login" class="header-action">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Войти</span>
-            </a>
-        </div>
-    </div>
+	<div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;">
+		<a href="/" class="logo"><div class="logo-icon"><i class="fas fa-laptop-code"></i></div><span>ТехноШок</span></a>
+		<div class="search-wrapper">
+			<input type="text" class="search-input" placeholder="Поиск товаров, брендов и категорий..." id="searchInput">
+			<button class="search-button" onclick="searchProducts()"><i class="fas fa-search"></i></button>
+		</div>
+		<div class="header-actions">
+			<a href="/favorites" class="header-action"><i class="fas fa-heart"></i><span>Избранное</span><span class="favorites-badge" id="favoritesCount">0</span></a>
+			<a href="/cart" class="header-action"><i class="fas fa-shopping-cart"></i><span>Корзина</span><span class="cart-badge" id="cartCount">0</span></a>
+			<a sec:authorize="isAuthenticated()" href="/users/profile" class="header-action"><i class="fas fa-user"></i><span>Профиль</span></a>
+			<a sec:authorize="!isAuthenticated()" href="/login" class="header-action"><i class="fas fa-sign-in-alt"></i><span>Войти</span></a>
+		</div>
+	</div>
 </div>
 
 <!-- Категории товаров -->
 <div class="categories-section">
-    <div class="container">
-        <div class="categories-scroll">
-            <a href="/products/catalog" class="category-item">
-                <i class="fas fa-th-large"></i>
-                <span>Все товары</span>
-            </a>
-            <a href="/category/notebooks" class="category-item">
-                <i class="fas fa-laptop"></i>
-                <span>Ноутбуки</span>
-            </a>
-            <a href="/category/smartphones" class="category-item">
-                <i class="fas fa-mobile-alt"></i>
-                <span>Смартфоны</span>
-            </a>
-            <a href="/category/tv" class="category-item">
-                <i class="fas fa-tv"></i>
-                <span>Телевизоры</span>
-            </a>
-            <a href="/category/audio" class="category-item">
-                <i class="fas fa-headphones"></i>
-                <span>Аудиотехника</span>
-            </a>
-            <a href="/category/gaming" class="category-item">
-                <i class="fas fa-gamepad"></i>
-                <span>Игры</span>
-            </a>
-            <a href="/category/accessories" class="category-item">
-                <i class="fas fa-mouse"></i>
-                <span>Аксессуары</span>
-            </a>
-        </div>
-    </div>
+	<div class="container">
+		<div class="categories-scroll">
+			<a href="/products/catalog" class="category-item"><i class="fas fa-th-large"></i><span>Все товары</span></a>
+			<a href="/category/notebooks" class="category-item"><i class="fas fa-laptop"></i><span>Ноутбуки</span></a>
+			<a href="/category/smartphones" class="category-item"><i class="fas fa-mobile-alt"></i><span>Смартфоны</span></a>
+			<a href="/category/tv" class="category-item"><i class="fas fa-tv"></i><span>Телевизоры</span></a>
+			<a href="/category/audio" class="category-item"><i class="fas fa-headphones"></i><span>Аудиотехника</span></a>
+			<a href="/category/gaming" class="category-item"><i class="fas fa-gamepad"></i><span>Игры</span></a>
+		</div>
+	</div>
 </div>
 
 <div class="catalog-wrapper">
-    <!-- Хедер категории -->
-    <div class="category-header">
-        <h1>
-            <i class="fas fa-mobile-alt"></i>
-            Смартфоны
-        </h1>
-        <p>Современные смартфоны с мощными камерами, большими экранами и долгим временем работы</p>
-        <div class="category-stats">
-            <div class="category-stat">
-                <i class="fas fa-camera"></i> До 200 МП камера
-            </div>
-            <div class="category-stat">
-                <i class="fas fa-battery-full"></i> 5000+ мАч
-            </div>
-            <div class="category-stat">
-                <i class="fas fa-microchip"></i> Snapdragon / Dimensity / A-series
-            </div>
-            <div class="category-stat">
-                <i class="fas fa-memory"></i> До 1TB памяти
-            </div>
-        </div>
-    </div>
+	<div class="category-header">
+		<h1><i class="fas fa-mobile-alt"></i> Смартфоны</h1>
+		<p>Современные смартфоны с мощными камерами, большими экранами и долгим временем работы</p>
+		<div class="category-stats">
+			<div class="category-stat"><i class="fas fa-camera"></i> До 200 МП камера</div>
+			<div class="category-stat"><i class="fas fa-battery-full"></i> 5000+ мАч</div>
+			<div class="category-stat"><i class="fas fa-microchip"></i> Snapdragon / Dimensity / A-series</div>
+			<div class="category-stat"><i class="fas fa-memory"></i> До 1TB памяти</div>
+		</div>
+	</div>
 
-    <!-- Фильтры -->
-    <div class="filters-section">
-        <div class="filters-title">
-            <i class="fas fa-sliders-h"></i>
-            <span>Фильтрация смартфонов</span>
-        </div>
-        <div class="filters-grid">
-            <!-- Бренд -->
-            <div class="filter-group">
-                <label><i class="fas fa-trademark"></i> Бренд</label>
-                <select id="brandFilter">
-                    <option value="all">Все бренды</option>
-                    <option value="Apple">Apple</option>
-                    <option value="Samsung">Samsung</option>
-                    <option value="Xiaomi">Xiaomi</option>
-                    <option value="Huawei">Huawei</option>
-                    <option value="Google">Google</option>
-                    <option value="OnePlus">OnePlus</option>
-                    <option value="Nothing">Nothing</option>
-                    <option value="Realme">Realme</option>
-                    <option value="Poco">Poco</option>
-                </select>
-            </div>
+	<div class="filters-section">
+		<div class="filters-title"><i class="fas fa-sliders-h"></i><span>Фильтрация смартфонов</span></div>
+		<div class="filters-grid">
+			<div class="filter-group">
+				<label><i class="fas fa-trademark"></i> Бренд</label>
+				<select id="brandFilter">
+					<option value="all">Все бренды</option>
+					<option value="Apple">Apple</option>
+					<option value="Samsung">Samsung</option>
+					<option value="Xiaomi">Xiaomi</option>
+					<option value="Google">Google</option>
+					<option value="OnePlus">OnePlus</option>
+				</select>
+			</div>
+			<div class="filter-group">
+				<label><i class="fas fa-ruble-sign"></i> Цена</label>
+				<div class="price-range">
+					<div class="price-input-wrapper"><i class="fas fa-ruble-sign"></i><input type="number" id="priceMin" placeholder="от" value="0"></div>
+					<span class="price-range-separator">—</span>
+					<div class="price-input-wrapper"><i class="fas fa-ruble-sign"></i><input type="number" id="priceMax" placeholder="до"></div>
+				</div>
+			</div>
+			<div class="filter-group">
+				<label><i class="fas fa-hdd"></i> Встроенная память</label>
+				<select id="storageFilter">
+					<option value="all">Любая</option>
+					<option value="64">64 GB</option>
+					<option value="128">128 GB</option>
+					<option value="256">256 GB</option>
+					<option value="512">512 GB</option>
+					<option value="1024">1 TB</option>
+				</select>
+			</div>
+			<div class="filter-group">
+				<label><i class="fas fa-star"></i> Рейтинг</label>
+				<div class="rating-filter">
+					<div class="rating-option active" data-rating="0" onclick="selectRating(0)"><span>Любой</span></div>
+					<div class="rating-option" data-rating="4" onclick="selectRating(4)"><span class="rating-stars-small">★★★★</span><span>+</span></div>
+					<div class="rating-option" data-rating="3" onclick="selectRating(3)"><span class="rating-stars-small">★★★</span><span>+</span></div>
+				</div>
+			</div>
+			<div class="filter-group">
+				<label><i class="fas fa-check-circle"></i> Наличие</label>
+				<select id="stockFilter">
+					<option value="all">Все товары</option>
+					<option value="in_stock">В наличии</option>
+					<option value="out_of_stock">Нет в наличии</option>
+				</select>
+			</div>
+			<div class="filter-group">
+				<label><i class="fas fa-mobile-alt"></i> Тип</label>
+				<div class="specs-filter">
+					<div class="spec-checkbox" onclick="toggleSpecCheckbox(this, 'flagship')"><input type="checkbox" value="flagship"><span>Флагман</span></div>
+					<div class="spec-checkbox" onclick="toggleSpecCheckbox(this, 'midrange')"><input type="checkbox" value="midrange"><span>Средний класс</span></div>
+					<div class="spec-checkbox" onclick="toggleSpecCheckbox(this, 'budget')"><input type="checkbox" value="budget"><span>Бюджетный</span></div>
+					<div class="spec-checkbox" onclick="toggleSpecCheckbox(this, 'foldable')"><input type="checkbox" value="foldable"><span>Складной</span></div>
+				</div>
+			</div>
+			<div class="filter-actions">
+				<button class="btn-filter" onclick="applyFilters()"><i class="fas fa-search"></i> Применить</button>
+				<button class="btn-reset" onclick="resetFilters()"><i class="fas fa-undo-alt"></i> Сбросить</button>
+			</div>
+		</div>
+	</div>
 
-            <!-- Цена -->
-            <div class="filter-group">
-                <label><i class="fas fa-ruble-sign"></i> Цена</label>
-                <div class="price-range">
-                    <div class="price-input-wrapper">
-                        <i class="fas fa-ruble-sign"></i>
-                        <input type="number" id="priceMin" placeholder="от" value="0">
-                    </div>
-                    <span class="price-range-separator">—</span>
-                    <div class="price-input-wrapper">
-                        <i class="fas fa-ruble-sign"></i>
-                        <input type="number" id="priceMax" placeholder="до">
-                    </div>
-                </div>
-            </div>
+	<!-- Активные фильтры (предпросмотр) -->
+	<div id="tempFiltersContainer" class="active-filters" style="display: none; margin-bottom: 10px; opacity: 0.7;"></div>
+	<!-- Активные фильтры (примененные) -->
+	<div id="activeFiltersContainer" class="active-filters" style="display: none;"></div>
 
-            <!-- Процессор -->
-            <div class="filter-group">
-                <label><i class="fas fa-microchip"></i> Процессор</label>
-                <select id="cpuFilter">
-                    <option value="all">Все процессоры</option>
-                    <option value="Snapdragon 8 Gen">Snapdragon 8 Gen</option>
-                    <option value="Snapdragon 7">Snapdragon 7 серия</option>
-                    <option value="Snapdragon 6">Snapdragon 6 серия</option>
-                    <option value="Dimensity 9000">Dimensity 9000</option>
-                    <option value="Dimensity 8000">Dimensity 8000</option>
-                    <option value="Apple A17">Apple A17 Pro</option>
-                    <option value="Apple A16">Apple A16</option>
-                    <option value="Apple A15">Apple A15</option>
-                    <option value="Exynos">Exynos</option>
-                    <option value="Tensor">Google Tensor</option>
-                </select>
-            </div>
+	<div class="results-header">
+		<div class="results-count">Найдено <span id="productsCount">0</span> смартфонов</div>
+		<select id="sortSelect" class="sort-select" onchange="sortProducts()">
+			<option value="default">Сортировка: По умолчанию</option>
+			<option value="price_asc">Цена: по возрастанию</option>
+			<option value="price_desc">Цена: по убыванию</option>
+			<option value="rating_desc">Рейтинг: по убыванию</option>
+			<option value="name_asc">Название: А-Я</option>
+		</select>
+	</div>
 
-            <!-- Оперативная память -->
-            <div class="filter-group">
-                <label><i class="fas fa-memory"></i> RAM</label>
-                <select id="ramFilter">
-                    <option value="all">Любая</option>
-                    <option value="4">4 GB</option>
-                    <option value="6">6 GB</option>
-                    <option value="8">8 GB</option>
-                    <option value="12">12 GB</option>
-                    <option value="16">16 GB</option>
-                </select>
-            </div>
-
-            <!-- Встроенная память -->
-            <div class="filter-group">
-                <label><i class="fas fa-hdd"></i> Память</label>
-                <select id="storageFilter">
-                    <option value="all">Любая</option>
-                    <option value="64">64 GB</option>
-                    <option value="128">128 GB</option>
-                    <option value="256">256 GB</option>
-                    <option value="512">512 GB</option>
-                    <option value="1024">1 TB</option>
-                </select>
-            </div>
-
-            <!-- Рейтинг -->
-            <div class="filter-group">
-                <label><i class="fas fa-star"></i> Рейтинг</label>
-                <div class="rating-filter">
-                    <div class="rating-option active" data-rating="0" onclick="selectRating(0)">
-                        <span>Любой</span>
-                    </div>
-                    <div class="rating-option" data-rating="4" onclick="selectRating(4)">
-                        <span class="rating-stars-small">★★★★</span>
-                        <span>+</span>
-                    </div>
-                    <div class="rating-option" data-rating="3" onclick="selectRating(3)">
-                        <span class="rating-stars-small">★★★</span>
-                        <span>+</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Наличие -->
-            <div class="filter-group">
-                <label><i class="fas fa-check-circle"></i> Наличие</label>
-                <select id="stockFilter">
-                    <option value="all">Все товары</option>
-                    <option value="in_stock">В наличии</option>
-                    <option value="out_of_stock">Нет в наличии</option>
-                </select>
-            </div>
-
-            <!-- Тип смартфона -->
-            <div class="filter-group">
-                <label><i class="fas fa-mobile-alt"></i> Тип</label>
-                <div class="specs-filter">
-                    <div class="spec-checkbox" onclick="toggleSpecCheckbox(this, 'flagship')">
-                        <input type="checkbox" value="flagship" onchange="event.stopPropagation(); applyFilters()">
-                        <span>Флагман</span>
-                    </div>
-                    <div class="spec-checkbox" onclick="toggleSpecCheckbox(this, 'midrange')">
-                        <input type="checkbox" value="midrange" onchange="event.stopPropagation(); applyFilters()">
-                        <span>Средний класс</span>
-                    </div>
-                    <div class="spec-checkbox" onclick="toggleSpecCheckbox(this, 'budget')">
-                        <input type="checkbox" value="budget" onchange="event.stopPropagation(); applyFilters()">
-                        <span>Бюджетный</span>
-                    </div>
-                    <div class="spec-checkbox" onclick="toggleSpecCheckbox(this, 'foldable')">
-                        <input type="checkbox" value="foldable" onchange="event.stopPropagation(); applyFilters()">
-                        <span>Складной</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Кнопки -->
-            <div class="filter-actions">
-                <button class="btn-filter" onclick="applyFilters()">
-                    <i class="fas fa-search"></i> Применить
-                </button>
-                <button class="btn-reset" onclick="resetFilters()">
-                    <i class="fas fa-undo-alt"></i> Сбросить
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Результаты -->
-    <div class="results-header">
-        <div class="results-count">
-            Найдено <span id="productsCount">0</span> смартфонов
-        </div>
-        <select id="sortSelect" class="sort-select" onchange="sortProducts()">
-            <option value="default">Сортировка: По умолчанию</option>
-            <option value="price_asc">Цена: по возрастанию</option>
-            <option value="price_desc">Цена: по убыванию</option>
-            <option value="rating_desc">Рейтинг: по убыванию</option>
-            <option value="name_asc">Название: А-Я</option>
-        </select>
-    </div>
-
-    <!-- Сетка товаров -->
-    <div class="products-grid" id="productsGrid"></div>
-
-    <!-- Пагинация -->
-    <div class="pagination" id="pagination"></div>
-
-    <!-- Пустое состояние -->
-    <div id="emptyState" class="empty-state" style="display: none;">
-        <i class="fas fa-mobile-alt"></i>
-        <h3>Смартфоны не найдены</h3>
-        <p>Попробуйте изменить параметры фильтрации</p>
-    </div>
+	<div class="products-grid" id="productsGrid"></div>
+	<div class="pagination" id="pagination"></div>
+	<div id="emptyState" class="empty-state" style="display:none;">
+		<i class="fas fa-mobile-alt"></i>
+		<h3>Смартфоны не найдены</h3>
+		<p>Попробуйте изменить параметры фильтрации</p>
+	</div>
 </div>
 
 <script th:inline="javascript">
-    // Данные из сервера
-    const productsFromServer = /*[[${products}]]*/ [];
+	// Данные из сервера
+	const productsFromServer = /*[[${products}]]*/ [];
 
-    let allProducts = [];
-    let filteredProducts = [];
-    let currentPage = 1;
-    const itemsPerPage = 12;
-    let selectedRating = 0;
-    let selectedSpecs = new Set();
+	let allProducts = [];
+	let filteredProducts = [];
+	let currentPage = 1;
+	const itemsPerPage = 12;
+	let selectedRating = 0;
+	let selectedSpecs = new Set();
 
-    // Вспомогательные функции
-    function extractCpuFromName(name) {
-        if (!name) return 'Snapdragon';
-        if (name.includes('Snapdragon 8')) return 'Snapdragon 8 Gen';
-        if (name.includes('Snapdragon 7')) return 'Snapdragon 7 серия';
-        if (name.includes('Snapdragon 6')) return 'Snapdragon 6 серия';
-        if (name.includes('Dimensity 9000')) return 'Dimensity 9000';
-        if (name.includes('Dimensity 8000')) return 'Dimensity 8000';
-        if (name.includes('A17')) return 'Apple A17 Pro';
-        if (name.includes('A16')) return 'Apple A16';
-        if (name.includes('A15')) return 'Apple A15';
-        if (name.includes('Exynos')) return 'Exynos';
-        if (name.includes('Tensor')) return 'Google Tensor';
-        if (name.includes('Kirin')) return 'Kirin';
-        return 'Snapdragon';
-    }
+	// Временные переменные для хранения выбранных фильтров до применения
+	let tempSelectedRating = 0;
+	let tempSelectedSpecs = new Set();
+	let tempBrand = 'all';
+	let tempPriceMin = 0;
+	let tempPriceMax = '';
+	let tempStorage = 'all';
+	let tempStock = 'all';
 
-    function extractRamFromName(name) {
-        if (!name) return 8;
-        if (name.includes('16GB')) return 16;
-        if (name.includes('12GB')) return 12;
-        if (name.includes('8GB')) return 8;
-        if (name.includes('6GB')) return 6;
-        if (name.includes('4GB')) return 4;
-        return 8;
-    }
+	// ========== ФУНКЦИИ ДЛЯ РАБОТЫ С СЕРВЕРОМ ==========
 
-    function extractStorageFromName(name) {
-        if (!name) return 128;
-        if (name.includes('1TB') || name.includes('1024GB')) return 1024;
-        if (name.includes('512GB')) return 512;
-        if (name.includes('256GB')) return 256;
-        if (name.includes('128GB')) return 128;
-        if (name.includes('64GB')) return 64;
-        return 128;
-    }
+	function getCsrfToken() {
+		return document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+	}
 
-    function extractTypeFromName(name) {
-        if (!name) return 'midrange';
-        const lowerName = name.toLowerCase();
-        if (lowerName.includes('fold') || lowerName.includes('flip')) return 'foldable';
-        if (lowerName.includes('pro') || lowerName.includes('ultra') || lowerName.includes('max')) return 'flagship';
-        if (lowerName.includes('lite') || lowerName.includes('se') || lowerName.includes('c')) return 'budget';
-        return 'midrange';
-    }
+	function getCsrfHeader() {
+		return document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+	}
 
-    function initProducts() {
-        if (productsFromServer && productsFromServer.length > 0) {
-            allProducts = productsFromServer.map(p => ({
-                id: p.id,
-                name: p.name,
-                price: p.price,
-                oldPrice: p.oldPrice,
-                rating: p.averageRating || (p.reviews && p.reviews.length > 0 ?
-                    p.reviews.reduce((sum, r) => sum + r.rating, 0) / p.reviews.length : 0),
-                image: p.fileUrl || '/images/phone-placeholder.png',
-                brand: p.brand || 'Другое',
-                cpu: p.cpu || extractCpuFromName(p.name),
-                ram: p.ram || extractRamFromName(p.name),
-                storage: p.storage || extractStorageFromName(p.name),
-                type: p.type || extractTypeFromName(p.name),
-                stock: p.stock !== undefined ? p.stock : (Math.floor(Math.random() * 20) + 1),
-                badge: p.badge || (p.oldPrice ? `-${Math.round((1 - p.price/p.oldPrice)*100)}%` : '')
-            }));
-        }
+	function isUserAuthenticated() {
+		const csrfToken = getCsrfToken();
+		return csrfToken && csrfToken !== '';
+	}
 
-        filteredProducts = [...allProducts];
-        renderProducts();
-        updateProductsCount();
-    }
+	function showNotification(message, isError = false) {
+		const notification = document.createElement('div');
+		notification.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${message}`;
+		notification.style.cssText = `
+            position: fixed; bottom: 20px; right: 20px;
+            background: ${isError ? 'rgba(255,100,100,0.95)' : 'rgba(111,240,165,0.95)'};
+            color: ${isError ? '#fff' : '#1a1c1f'};
+            padding: 12px 20px; border-radius: 10px; z-index: 10000;
+            font-family: monospace; font-size: 14px;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        `;
+		document.body.appendChild(notification);
+		setTimeout(() => {
+			notification.style.animation = 'fadeOut 0.3s ease';
+			setTimeout(() => notification.remove(), 300);
+		}, 3000);
+	}
 
-    function toggleSpecCheckbox(element, spec) {
-        const checkbox = element.querySelector('input');
-        checkbox.checked = !checkbox.checked;
-        applyFilters();
-    }
+	function showAuthNotification() {
+		showNotification('Для выполнения этого действия необходимо авторизоваться', true);
+		setTimeout(() => {
+			window.location.href = '/login';
+		}, 1500);
+	}
 
-    function selectRating(rating) {
-        selectedRating = rating;
-        document.querySelectorAll('.rating-option').forEach(opt => {
-            opt.classList.remove('active');
-        });
-        document.querySelector(`.rating-option[data-rating="${rating}"]`).classList.add('active');
-        applyFilters();
-    }
+	function updateCartCount() {
+		if (!isUserAuthenticated()) {
+			const cartCount = document.getElementById('cartCount');
+			if (cartCount) cartCount.textContent = '0';
+			return;
+		}
+		fetch('/cart/count')
+				.then(response => response.json())
+				.then(data => {
+					const cartCount = document.getElementById('cartCount');
+					if (cartCount) cartCount.textContent = data.count || 0;
+				})
+				.catch(error => console.error('Ошибка загрузки корзины:', error));
+	}
 
-    function renderProducts() {
-        const container = document.getElementById('productsGrid');
-        const emptyState = document.getElementById('emptyState');
+	function updateFavoritesCount() {
+		if (!isUserAuthenticated()) {
+			const favoritesCount = document.getElementById('favoritesCount');
+			if (favoritesCount) favoritesCount.textContent = '0';
+			return;
+		}
+		fetch('/favorites/count')
+				.then(response => response.json())
+				.then(count => {
+					const favoritesCount = document.getElementById('favoritesCount');
+					if (favoritesCount) favoritesCount.textContent = count;
+				})
+				.catch(error => console.error('Ошибка загрузки избранного:', error));
+	}
 
-        if (filteredProducts.length === 0) {
-            emptyState.style.display = 'block';
-            container.innerHTML = '';
-            document.getElementById('pagination').innerHTML = '';
-            return;
-        }
+	function updateFavoriteButtons() {
+		if (!isUserAuthenticated()) return;
 
-        emptyState.style.display = 'none';
+		fetch('/favorites/ids')
+				.then(response => response.json())
+				.then(favoriteIds => {
+					document.querySelectorAll('.favorite-btn').forEach(btn => {
+						const productId = parseInt(btn.getAttribute('data-id'));
+						const icon = btn.querySelector('i');
+						if (favoriteIds && favoriteIds.includes(productId)) {
+							icon.className = '';
+							icon.classList.add('fas', 'fa-heart');
+							btn.classList.add('active');
+						} else {
+							icon.className = '';
+							icon.classList.add('far', 'fa-heart');
+							btn.classList.remove('active');
+						}
+					});
+				})
+				.catch(error => console.error('Ошибка загрузки избранного:', error));
+	}
 
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const pageProducts = filteredProducts.slice(start, end);
+	function toggleFavorite(button) {
+		event.stopPropagation();
+		if (!isUserAuthenticated()) {
+			showAuthNotification();
+			return;
+		}
 
-        container.innerHTML = pageProducts.map(product => `
+		const productId = button.getAttribute('data-id');
+		const icon = button.querySelector('i');
+		const isActive = button.classList.contains('active');
+		const url = isActive ? `/favorites/remove/${productId}` : `/favorites/add/${productId}`;
+		const method = isActive ? 'DELETE' : 'POST';
+
+		const csrfToken = getCsrfToken();
+		const csrfHeader = getCsrfHeader();
+		const headers = { 'Content-Type': 'application/json' };
+		if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+		button.disabled = true;
+		const originalIconClass = icon.className;
+		icon.className = 'fas fa-spinner fa-pulse';
+
+		fetch(url, { method: method, headers: headers })
+				.then(response => response.text())
+				.then(result => {
+					if (result === 'added') {
+						icon.className = '';
+						icon.classList.add('fas', 'fa-heart');
+						button.classList.add('active');
+						showNotification('Смартфон добавлен в избранное!');
+						updateFavoritesCount();
+					} else if (result === 'removed') {
+						icon.className = '';
+						icon.classList.add('far', 'fa-heart');
+						button.classList.remove('active');
+						showNotification('Смартфон удалён из избранного');
+						updateFavoritesCount();
+					} else if (result === 'exists') {
+						icon.className = originalIconClass;
+						showNotification('Смартфон уже в избранном', true);
+					} else if (result === 'unauthorized') {
+						showAuthNotification();
+					} else {
+						icon.className = originalIconClass;
+						showNotification('Для выполнения этого действия необходимо авторизоваться', true);
+					}
+					button.disabled = false;
+				})
+				.catch(error => {
+					console.error('Ошибка:', error);
+					icon.className = originalIconClass;
+					button.disabled = false;
+					showNotification('Ошибка соединения', true);
+				});
+	}
+
+	function addToCart(productId) {
+		event.stopPropagation();
+		if (!isUserAuthenticated()) {
+			showAuthNotification();
+			return;
+		}
+
+		const csrfToken = getCsrfToken();
+		const csrfHeader = getCsrfHeader();
+		const headers = { 'Content-Type': 'application/json' };
+		if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+		const btn = event.target.closest('button');
+		const originalText = btn.innerHTML;
+		btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+		btn.disabled = true;
+
+		fetch('/cart/add', {
+			method: 'POST',
+			headers: headers,
+			body: JSON.stringify({ productId: productId, quantity: 1 })
+		})
+				.then(response => response.json())
+				.then(data => {
+					if (data.success) {
+						updateCartCount();
+						showNotification(data.message);
+						btn.innerHTML = '<i class="fas fa-check"></i> В корзине!';
+						setTimeout(() => {
+							btn.innerHTML = originalText;
+							btn.disabled = false;
+						}, 1500);
+					} else if (data.redirect) {
+						showAuthNotification();
+					} else {
+						showNotification(data.message || 'Ошибка', true);
+						btn.innerHTML = originalText;
+						btn.disabled = false;
+					}
+				})
+				.catch(error => {
+					console.error('Ошибка:', error);
+					showNotification('Для выполнения этого действия необходимо авторизоваться', true);
+					btn.innerHTML = originalText;
+					btn.disabled = false;
+				});
+	}
+
+	function searchProducts() {
+		const query = document.getElementById('searchInput').value.trim();
+		if (query) {
+			window.location.href = '/category/search?query=' + encodeURIComponent(query);
+		}
+	}
+
+	// ========== ФУНКЦИИ ДЛЯ ФИЛЬТРАЦИИ И ОТОБРАЖЕНИЯ ==========
+
+	function extractTypeFromName(name) {
+		if (!name) return 'midrange';
+		const lowerName = name.toLowerCase();
+		if (lowerName.includes('fold') || lowerName.includes('flip')) return 'foldable';
+		if (lowerName.includes('pro') || lowerName.includes('ultra') || lowerName.includes('max')) return 'flagship';
+		if (lowerName.includes('lite') || lowerName.includes('se') || lowerName.includes('c')) return 'budget';
+		return 'midrange';
+	}
+
+	function initProducts() {
+		console.log('Products from server:', productsFromServer);
+
+		if (productsFromServer && productsFromServer.length > 0) {
+			allProducts = productsFromServer.map(p => ({
+				id: p.id,
+				name: p.name,
+				price: p.price,
+				oldPrice: p.oldPrice,
+				rating: p.averageRating || 0,
+				image: p.fileurl || p.fileUrl || '/images/images.png',
+				brand: p.brand || 'Другое',
+				storage: p.storage || '128',
+				type: p.type || extractTypeFromName(p.name),
+				stock: p.stock !== undefined ? p.stock : 10,
+				badge: p.badge || (p.oldPrice ? `-${Math.round((1 - p.price/p.oldPrice)*100)}%` : '')
+			}));
+		}
+
+		console.log('All products after mapping:', allProducts);
+
+		filteredProducts = [...allProducts];
+		renderProducts();
+		updateProductsCount();
+
+		// Инициализируем временные переменные
+		tempSelectedRating = 0;
+		tempSelectedSpecs.clear();
+		tempBrand = document.getElementById('brandFilter')?.value || 'all';
+		tempPriceMin = parseFloat(document.getElementById('priceMin')?.value) || 0;
+		tempPriceMax = parseFloat(document.getElementById('priceMax')?.value) || 0;
+		tempStorage = document.getElementById('storageFilter')?.value || 'all';
+		tempStock = document.getElementById('stockFilter')?.value || 'all';
+
+		updateTempFiltersDisplay();
+	}
+
+	function toggleSpecCheckbox(element, spec) {
+		const checkbox = element.querySelector('input');
+		checkbox.checked = !checkbox.checked;
+		if (checkbox.checked) {
+			tempSelectedSpecs.add(checkbox.value);
+		} else {
+			tempSelectedSpecs.delete(checkbox.value);
+		}
+		updateTempFiltersDisplay();
+	}
+
+	function selectRating(rating) {
+		tempSelectedRating = rating;
+		document.querySelectorAll('.rating-option').forEach(opt => opt.classList.remove('active'));
+		document.querySelector(`.rating-option[data-rating="${rating}"]`).classList.add('active');
+		updateTempFiltersDisplay();
+	}
+
+	// Обновление отображения временных фильтров (предпросмотр)
+	function updateTempFiltersDisplay() {
+		let container = document.getElementById('tempFiltersContainer');
+		if (!container) return;
+
+		const filters = [];
+
+		tempBrand = document.getElementById('brandFilter')?.value;
+		if (tempBrand && tempBrand !== 'all') {
+			filters.push({ type: 'brand', value: tempBrand, text: `Бренд: ${tempBrand}` });
+		}
+
+		if (tempSelectedRating > 0) {
+			filters.push({ type: 'rating', value: tempSelectedRating, text: `Рейтинг: ${tempSelectedRating}+ ★` });
+		}
+
+		if (tempSelectedSpecs.size > 0) {
+			tempSelectedSpecs.forEach(s => {
+				let specText = '';
+				switch(s) {
+					case 'flagship': specText = 'Флагман'; break;
+					case 'midrange': specText = 'Средний класс'; break;
+					case 'budget': specText = 'Бюджетный'; break;
+					case 'foldable': specText = 'Складной'; break;
+					default: specText = s;
+				}
+				filters.push({ type: 'type', value: s, text: `Тип: ${specText}` });
+			});
+		}
+
+		tempPriceMin = parseFloat(document.getElementById('priceMin')?.value) || 0;
+		tempPriceMax = parseFloat(document.getElementById('priceMax')?.value) || 0;
+		if (tempPriceMin > 0 || tempPriceMax > 0) {
+			filters.push({ type: 'price', value: `${tempPriceMin}-${tempPriceMax}`, text: `Цена: ${tempPriceMin > 0 ? tempPriceMin : '0'}₽ - ${tempPriceMax > 0 ? tempPriceMax : '∞'}₽` });
+		}
+
+		tempStorage = document.getElementById('storageFilter')?.value;
+		if (tempStorage && tempStorage !== 'all') {
+			filters.push({ type: 'storage', value: tempStorage, text: `Память: от ${tempStorage} GB` });
+		}
+
+		tempStock = document.getElementById('stockFilter')?.value;
+		if (tempStock && tempStock !== 'all') {
+			filters.push({ type: 'stock', value: tempStock, text: tempStock === 'in_stock' ? 'В наличии' : 'Нет в наличии' });
+		}
+
+		if (filters.length === 0) {
+			container.style.display = 'none';
+			container.innerHTML = '';
+			return;
+		}
+
+		container.style.display = 'flex';
+		container.innerHTML = `<span style="font-size: 11px; color: var(--off-white); opacity: 0.6; margin-right: 5px;">Выбрано:</span>` +
+				filters.map(f => `<span class="filter-tag filter-preview">${f.text} <i class="fas fa-times-circle" onclick="removeTempFilter('${f.type}', '${f.value}')"></i></span>`).join('');
+	}
+
+	// Удаление временного фильтра
+	function removeTempFilter(type, value) {
+		if (type === 'brand') {
+			document.getElementById('brandFilter').value = 'all';
+			tempBrand = 'all';
+		} else if (type === 'rating') {
+			tempSelectedRating = 0;
+			document.querySelectorAll('.rating-option').forEach(opt => opt.classList.remove('active'));
+			document.querySelector('.rating-option[data-rating="0"]').classList.add('active');
+		} else if (type === 'type') {
+			tempSelectedSpecs.delete(value);
+			document.querySelectorAll('.spec-checkbox input').forEach(cb => {
+				if (cb.value === value) cb.checked = false;
+			});
+		} else if (type === 'price') {
+			document.getElementById('priceMin').value = '0';
+			document.getElementById('priceMax').value = '';
+			tempPriceMin = 0;
+			tempPriceMax = 0;
+		} else if (type === 'storage') {
+			document.getElementById('storageFilter').value = 'all';
+			tempStorage = 'all';
+		} else if (type === 'stock') {
+			document.getElementById('stockFilter').value = 'all';
+			tempStock = 'all';
+		}
+		updateTempFiltersDisplay();
+	}
+
+	// ========== ПРИМЕНЕНИЕ ФИЛЬТРОВ (по кнопке) ==========
+
+	function applyFilters() {
+		// Переносим временные значения в основные
+		selectedRating = tempSelectedRating;
+		selectedSpecs = new Set(tempSelectedSpecs);
+
+		const brand = tempBrand;
+		const priceMin = tempPriceMin;
+		const priceMax = tempPriceMax === 0 ? Infinity : tempPriceMax;
+		const storage = tempStorage;
+		const stock = tempStock;
+
+		console.log('Applied filters - brand:', brand);
+		console.log('Applied filters - storage:', storage);
+		console.log('Applied filters - rating:', selectedRating);
+		console.log('Applied filters - specs:', [...selectedSpecs]);
+
+		filteredProducts = allProducts.filter(product => {
+			if (brand !== 'all' && product.brand !== brand) return false;
+			if (product.price < priceMin) return false;
+			if (product.price > priceMax) return false;
+			if (storage !== 'all' && parseInt(product.storage) < parseInt(storage)) return false;
+			if (selectedRating > 0 && product.rating < selectedRating) return false;
+			if (selectedSpecs.size > 0 && !selectedSpecs.has(product.type)) return false;
+			if (stock === 'in_stock' && product.stock <= 0) return false;
+			if (stock === 'out_of_stock' && product.stock > 0) return false;
+			return true;
+		});
+
+		console.log('Filtered products count:', filteredProducts.length);
+
+		applySort();
+		currentPage = 1;
+		renderProducts();
+		updateProductsCount();
+		updateActiveFiltersDisplay();
+
+		showNotification('Фильтры применены! Найдено ' + filteredProducts.length + ' смартфонов');
+	}
+
+	// Обновление отображения ПРИМЕНЕННЫХ фильтров
+	function updateActiveFiltersDisplay() {
+		let container = document.getElementById('activeFiltersContainer');
+		if (!container) return;
+
+		const filters = [];
+
+		if (tempBrand && tempBrand !== 'all') {
+			filters.push({ type: 'brand', value: tempBrand, text: `Бренд: ${tempBrand}` });
+		}
+
+		if (selectedRating > 0) {
+			filters.push({ type: 'rating', value: selectedRating, text: `Рейтинг: ${selectedRating}+ ★` });
+		}
+
+		if (selectedSpecs.size > 0) {
+			selectedSpecs.forEach(s => {
+				let specText = '';
+				switch(s) {
+					case 'flagship': specText = 'Флагман'; break;
+					case 'midrange': specText = 'Средний класс'; break;
+					case 'budget': specText = 'Бюджетный'; break;
+					case 'foldable': specText = 'Складной'; break;
+					default: specText = s;
+				}
+				filters.push({ type: 'type', value: s, text: `Тип: ${specText}` });
+			});
+		}
+
+		const priceMin = tempPriceMin;
+		const priceMax = tempPriceMax;
+		if (priceMin > 0 || priceMax > 0) {
+			filters.push({ type: 'price', value: `${priceMin}-${priceMax}`, text: `Цена: ${priceMin > 0 ? priceMin : '0'}₽ - ${priceMax > 0 ? priceMax : '∞'}₽` });
+		}
+
+		if (tempStorage && tempStorage !== 'all') {
+			filters.push({ type: 'storage', value: tempStorage, text: `Память: от ${tempStorage} GB` });
+		}
+
+		if (tempStock && tempStock !== 'all') {
+			filters.push({ type: 'stock', value: tempStock, text: tempStock === 'in_stock' ? 'В наличии' : 'Нет в наличии' });
+		}
+
+		if (filters.length === 0) {
+			container.style.display = 'none';
+			container.innerHTML = '';
+			return;
+		}
+
+		container.style.display = 'flex';
+		container.innerHTML = filters.map(f => `<span class="filter-tag">${f.text} <i class="fas fa-times-circle" onclick="removeAppliedFilter('${f.type}', '${f.value}')"></i></span>`).join('');
+	}
+
+	// Удаление ПРИМЕНЕННОГО фильтра
+	function removeAppliedFilter(type, value) {
+		if (type === 'brand') {
+			document.getElementById('brandFilter').value = 'all';
+			tempBrand = 'all';
+		} else if (type === 'rating') {
+			tempSelectedRating = 0;
+			selectedRating = 0;
+			document.querySelectorAll('.rating-option').forEach(opt => opt.classList.remove('active'));
+			document.querySelector('.rating-option[data-rating="0"]').classList.add('active');
+		} else if (type === 'type') {
+			tempSelectedSpecs.delete(value);
+			selectedSpecs.delete(value);
+			document.querySelectorAll('.spec-checkbox input').forEach(cb => {
+				if (cb.value === value) cb.checked = false;
+			});
+		} else if (type === 'price') {
+			document.getElementById('priceMin').value = '0';
+			document.getElementById('priceMax').value = '';
+			tempPriceMin = 0;
+			tempPriceMax = 0;
+		} else if (type === 'storage') {
+			document.getElementById('storageFilter').value = 'all';
+			tempStorage = 'all';
+		} else if (type === 'stock') {
+			document.getElementById('stockFilter').value = 'all';
+			tempStock = 'all';
+		}
+		// Повторно применяем фильтры
+		applyFilters();
+		updateTempFiltersDisplay();
+	}
+
+	function renderProducts() {
+		const container = document.getElementById('productsGrid');
+		const emptyState = document.getElementById('emptyState');
+
+		if (filteredProducts.length === 0) {
+			emptyState.style.display = 'block';
+			container.innerHTML = '';
+			document.getElementById('pagination').innerHTML = '';
+			return;
+		}
+
+		emptyState.style.display = 'none';
+
+		const start = (currentPage - 1) * itemsPerPage;
+		const end = start + itemsPerPage;
+		const pageProducts = filteredProducts.slice(start, end);
+
+		container.innerHTML = pageProducts.map(product => `
             <div class="product-card" onclick="window.location.href='/products/${product.id}'">
                 <div class="product-badge">${product.badge || 'Смартфон'}</div>
-                <img src="${product.image}" alt="${product.name}"
-                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23252529\'/%3E%3Ctext x=\'100\' y=\'110\' text-anchor=\'middle\' fill=\'%236FF0A5\' font-size=\'14\' font-family=\'Arial\'%3ENo Image%3C/text%3E%3C/svg%3E'">
+                <button class="favorite-btn" data-id="${product.id}" onclick="event.stopPropagation(); toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </button>
+                <img src="${product.image}" alt="${product.name}" onerror="this.src='/images/images.png'">
+                <div class="product-brand">${product.brand}</div>
                 <h3 class="product-title">${product.name}</h3>
                 <div class="product-specs">
-                    <span><i class="fas fa-microchip"></i> ${product.cpu}</span>
-                    <span><i class="fas fa-memory"></i> ${product.ram}GB</span>
                     <span><i class="fas fa-hdd"></i> ${product.storage}GB</span>
                 </div>
                 <div class="product-rating">
@@ -954,206 +775,174 @@
             </div>
         `).join('');
 
-        renderPagination();
-    }
+		renderPagination();
+		updateFavoriteButtons();
+	}
 
-    function renderPagination() {
-        const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-        const paginationContainer = document.getElementById('pagination');
+	function renderPagination() {
+		const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+		const paginationContainer = document.getElementById('pagination');
 
-        if (totalPages <= 1) {
-            paginationContainer.innerHTML = '';
-            return;
-        }
+		if (totalPages <= 1) {
+			paginationContainer.innerHTML = '';
+			return;
+		}
 
-        let paginationHtml = '';
+		let paginationHtml = '';
 
-        if (currentPage > 1) {
-            paginationHtml += `<a href="#" class="page-link" onclick="changePage(${currentPage - 1}); return false;"><i class="fas fa-chevron-left"></i></a>`;
-        }
+		if (currentPage > 1) {
+			paginationHtml += `<a href="#" class="page-link" onclick="changePage(${currentPage - 1}); return false;"><i class="fas fa-chevron-left"></i></a>`;
+		}
 
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-                paginationHtml += `<a href="#" class="page-link ${i === currentPage ? 'active' : ''}" onclick="changePage(${i}); return false;">${i}</a>`;
-            } else if (i === currentPage - 2 || i === currentPage + 2) {
-                paginationHtml += `<span class="page-link disabled">...</span>`;
-            }
-        }
+		for (let i = 1; i <= totalPages; i++) {
+			if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+				paginationHtml += `<a href="#" class="page-link ${i === currentPage ? 'active' : ''}" onclick="changePage(${i}); return false;">${i}</a>`;
+			} else if (i === currentPage - 2 || i === currentPage + 2) {
+				paginationHtml += `<span class="page-link disabled">...</span>`;
+			}
+		}
 
-        if (currentPage < totalPages) {
-            paginationHtml += `<a href="#" class="page-link" onclick="changePage(${currentPage + 1}); return false;"><i class="fas fa-chevron-right"></i></a>`;
-        }
+		if (currentPage < totalPages) {
+			paginationHtml += `<a href="#" class="page-link" onclick="changePage(${currentPage + 1}); return false;"><i class="fas fa-chevron-right"></i></a>`;
+		}
 
-        paginationContainer.innerHTML = paginationHtml;
-    }
+		paginationContainer.innerHTML = paginationHtml;
+	}
 
-    function changePage(page) {
-        currentPage = page;
-        renderProducts();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+	function changePage(page) {
+		currentPage = page;
+		renderProducts();
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
 
-    function applyFilters() {
-        const brand = document.getElementById('brandFilter').value;
-        const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
-        const priceMax = parseFloat(document.getElementById('priceMax').value) || Infinity;
-        const cpu = document.getElementById('cpuFilter').value;
-        const ram = document.getElementById('ramFilter').value;
-        const storage = document.getElementById('storageFilter').value;
-        const stock = document.getElementById('stockFilter').value;
+	function applySort() {
+		const sortValue = document.getElementById('sortSelect').value;
 
-        selectedSpecs.clear();
-        document.querySelectorAll('.spec-checkbox input:checked').forEach(cb => {
-            selectedSpecs.add(cb.value);
-        });
+		switch(sortValue) {
+			case 'price_asc':
+				filteredProducts.sort((a, b) => a.price - b.price);
+				break;
+			case 'price_desc':
+				filteredProducts.sort((a, b) => b.price - a.price);
+				break;
+			case 'rating_desc':
+				filteredProducts.sort((a, b) => b.rating - a.rating);
+				break;
+			case 'name_asc':
+				filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+				break;
+			default:
+				break;
+		}
+	}
 
-        filteredProducts = allProducts.filter(product => {
-            if (brand !== 'all' && product.brand !== brand) return false;
-            if (product.price < priceMin) return false;
-            if (product.price > priceMax) return false;
-            if (cpu !== 'all' && product.cpu !== cpu) return false;
-            if (ram !== 'all' && product.ram < parseInt(ram)) return false;
-            if (storage !== 'all' && product.storage < parseInt(storage)) return false;
-            if (selectedRating > 0 && product.rating < selectedRating) return false;
-            if (selectedSpecs.size > 0 && !selectedSpecs.has(product.type)) return false;
-            if (stock === 'in_stock' && product.stock <= 0) return false;
-            if (stock === 'out_of_stock' && product.stock > 0) return false;
-            return true;
-        });
+	function sortProducts() {
+		applySort();
+		currentPage = 1;
+		renderProducts();
+	}
 
-        applySort();
-        currentPage = 1;
-        renderProducts();
-        updateProductsCount();
-    }
+	function resetFilters() {
+		// Сбрасываем временные переменные
+		tempSelectedRating = 0;
+		tempSelectedSpecs.clear();
+		tempBrand = 'all';
+		tempPriceMin = 0;
+		tempPriceMax = 0;
+		tempStorage = 'all';
+		tempStock = 'all';
 
-    function applySort() {
-        const sortValue = document.getElementById('sortSelect').value;
+		// Сбрасываем основные переменные
+		selectedRating = 0;
+		selectedSpecs.clear();
 
-        switch(sortValue) {
-            case 'price_asc':
-                filteredProducts.sort((a, b) => a.price - b.price);
-                break;
-            case 'price_desc':
-                filteredProducts.sort((a, b) => b.price - a.price);
-                break;
-            case 'rating_desc':
-                filteredProducts.sort((a, b) => b.rating - a.rating);
-                break;
-            case 'name_asc':
-                filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
-                break;
-            default:
-                break;
-        }
-    }
+		// Сбрасываем UI элементы
+		document.getElementById('brandFilter').value = 'all';
+		document.getElementById('priceMin').value = '0';
+		document.getElementById('priceMax').value = '';
+		document.getElementById('storageFilter').value = 'all';
+		document.getElementById('stockFilter').value = 'all';
+		document.getElementById('sortSelect').value = 'default';
 
-    function sortProducts() {
-        applySort();
-        currentPage = 1;
-        renderProducts();
-    }
+		document.querySelectorAll('.rating-option').forEach(opt => opt.classList.remove('active'));
+		document.querySelector('.rating-option[data-rating="0"]').classList.add('active');
 
-    function resetFilters() {
-        document.getElementById('brandFilter').value = 'all';
-        document.getElementById('priceMin').value = '0';
-        document.getElementById('priceMax').value = '';
-        document.getElementById('cpuFilter').value = 'all';
-        document.getElementById('ramFilter').value = 'all';
-        document.getElementById('storageFilter').value = 'all';
-        document.getElementById('stockFilter').value = 'all';
+		document.querySelectorAll('.spec-checkbox input').forEach(cb => cb.checked = false);
 
-        selectedRating = 0;
+		// Применяем сброшенные фильтры
+		filteredProducts = [...allProducts];
+		currentPage = 1;
+		renderProducts();
+		updateProductsCount();
+		updateTempFiltersDisplay();
+		updateActiveFiltersDisplay();
 
-        document.querySelectorAll('.rating-option').forEach(opt => {
-            opt.classList.remove('active');
-        });
-        document.querySelector('.rating-option[data-rating="0"]').classList.add('active');
+		showNotification('Все фильтры сброшены');
+	}
 
-        document.querySelectorAll('.spec-checkbox input').forEach(cb => {
-            cb.checked = false;
-        });
-        selectedSpecs.clear();
+	function updateProductsCount() {
+		const countSpan = document.getElementById('productsCount');
+		if (countSpan) countSpan.textContent = filteredProducts.length;
+	}
 
-        filteredProducts = [...allProducts];
-        currentPage = 1;
-        renderProducts();
-        updateProductsCount();
-    }
+	function addBackgroundElements() {
+		if (!document.querySelector('.bg-blur-circle')) {
+			const circles = [
+				{ className: 'bg-circle-1', size: 600, top: -200, left: -200 },
+				{ className: 'bg-circle-2', size: 550, bottom: -150, right: -150 },
+				{ className: 'bg-circle-3', size: 450, top: '60%', left: '10%' },
+				{ className: 'bg-circle-4', size: 500, bottom: '20%', right: '20%' }
+			];
+			circles.forEach(circle => {
+				const div = document.createElement('div');
+				div.className = `bg-blur-circle ${circle.className}`;
+				if (circle.size) div.style.width = `${circle.size}px`;
+				if (circle.size) div.style.height = `${circle.size}px`;
+				if (circle.top) div.style.top = circle.top;
+				if (circle.left) div.style.left = circle.left;
+				if (circle.bottom) div.style.bottom = circle.bottom;
+				if (circle.right) div.style.right = circle.right;
+				document.body.appendChild(div);
+			});
+		}
+		if (!document.querySelector('.soft-glow')) {
+			const glow = document.createElement('div');
+			glow.className = 'soft-glow';
+			document.body.appendChild(glow);
+		}
+		if (!document.querySelector('.stars')) {
+			const stars = document.createElement('div');
+			stars.className = 'stars';
+			stars.id = 'stars';
+			document.body.appendChild(stars);
+		}
+	}
 
-    function updateProductsCount() {
-        const countSpan = document.getElementById('productsCount');
-        if (countSpan) countSpan.textContent = filteredProducts.length;
-    }
+	function createStars() {
+		const container = document.getElementById('stars');
+		if (!container) return;
+		for (let i = 0; i < 80; i++) {
+			const star = document.createElement('div');
+			const rand = Math.random();
+			star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
+			star.style.left = Math.random() * 100 + '%';
+			star.style.top = Math.random() * 100 + '%';
+			star.style.animationDelay = Math.random() * 5 + 's';
+			container.appendChild(star);
+		}
+	}
 
-    function addToCart(productId) {
-        const product = allProducts.find(p => p.id === productId);
-        if (product) {
-            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            cart.push({ id: product.id, name: product.name, price: product.price });
-            localStorage.setItem('cart', JSON.stringify(cart));
+	document.addEventListener('DOMContentLoaded', () => {
+		addBackgroundElements();
+		createStars();
+		initProducts();
+		updateCartCount();
+		updateFavoritesCount();
 
-            const btn = event.target.closest('button');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i> Добавлено!';
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-            }, 1500);
-        }
-    }
-
-    function addBackgroundElements() {
-        if (!document.querySelector('.bg-blur-circle')) {
-            const circles = [
-                { className: 'bg-circle-1', size: 600, top: -200, left: -200 },
-                { className: 'bg-circle-2', size: 550, bottom: -150, right: -150 },
-                { className: 'bg-circle-3', size: 450, top: '60%', left: '10%' },
-                { className: 'bg-circle-4', size: 500, bottom: '20%', right: '20%' }
-            ];
-            circles.forEach(circle => {
-                const div = document.createElement('div');
-                div.className = `bg-blur-circle ${circle.className}`;
-                if (circle.size) div.style.width = `${circle.size}px`;
-                if (circle.size) div.style.height = `${circle.size}px`;
-                if (circle.top) div.style.top = circle.top;
-                if (circle.left) div.style.left = circle.left;
-                if (circle.bottom) div.style.bottom = circle.bottom;
-                if (circle.right) div.style.right = circle.right;
-                document.body.appendChild(div);
-            });
-        }
-        if (!document.querySelector('.soft-glow')) {
-            const glow = document.createElement('div');
-            glow.className = 'soft-glow';
-            document.body.appendChild(glow);
-        }
-        if (!document.querySelector('.stars')) {
-            const stars = document.createElement('div');
-            stars.className = 'stars';
-            stars.id = 'stars';
-            document.body.appendChild(stars);
-        }
-    }
-
-    function createStars() {
-        const container = document.getElementById('stars');
-        if (!container) return;
-        for (let i = 0; i < 80; i++) {
-            const star = document.createElement('div');
-            const rand = Math.random();
-            star.className = rand < 0.6 ? 'star' : (rand < 0.9 ? 'star star-medium' : 'star star-large');
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 5 + 's';
-            container.appendChild(star);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        addBackgroundElements();
-        createStars();
-        initProducts();
-    });
+		document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+			if (e.key === 'Enter') searchProducts();
+		});
+	});
 </script>
 </body>
 </html>

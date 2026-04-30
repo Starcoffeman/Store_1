@@ -123,8 +123,31 @@ public class OrderController {
             return "redirect:/";
         }
 
+        // Определяем текст статуса для отображения
+        String statusText = "";
+        switch (order.getStatus()) {
+            case "PAID":
+                statusText = "Оплачен";
+                break;
+            case "COMPLETED":
+                statusText = "Завершен";
+                break;
+            case "PENDING":
+                statusText = "Ожидает оплаты";
+                break;
+            case "PROCESSING":
+                statusText = "В обработке";
+                break;
+            case "CANCELLED":
+                statusText = "Отменен";
+                break;
+            default:
+                statusText = order.getStatus();
+        }
+
         model.addAttribute("orderId", id);
-        model.addAttribute("status", order.getStatus());
+        model.addAttribute("status", statusText);
+        model.addAttribute("orderStatus", order.getStatus()); // Добавляем оригинальный статус
         return "order-success";
     }
 }

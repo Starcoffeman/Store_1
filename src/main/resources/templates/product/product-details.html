@@ -9,6 +9,31 @@
 	<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 	<link rel="stylesheet" th:href="@{/css/main.css}"/>
 	<style>
+
+		/* Стили для формы отзыва */
+		.rating-input i {
+			transition: all 0.2s ease;
+			color: #ffc107;
+		}
+
+		.rating-input i:hover {
+			transform: scale(1.2);
+		}
+
+		.btn-submit-review:hover {
+			transform: translateY(-2px);
+			box-shadow: var(--shadow-neon);
+		}
+
+		.review-card {
+			transition: all 0.3s ease;
+		}
+
+		.review-card:hover {
+			transform: translateX(5px);
+			background: rgba(111, 240, 165, 0.08);
+		}
+
 		.product-details-wrapper {
 			max-width: 1400px;
 			margin: 0 auto;
@@ -545,7 +570,6 @@
 			<a href="/category/tv" class="category-item"><i class="fas fa-tv"></i><span>Телевизоры</span></a>
 			<a href="/category/audio" class="category-item"><i class="fas fa-headphones"></i><span>Аудиотехника</span></a>
 			<a href="/category/gaming" class="category-item"><i class="fas fa-gamepad"></i><span>Игры</span></a>
-			<a href="/category/accessories" class="category-item"><i class="fas fa-mouse"></i><span>Аксессуары</span></a>
 		</div>
 	</div>
 </div>
@@ -734,9 +758,55 @@
 	</div>
 
 	<!-- Вкладка: Отзывы -->
+	<!-- Вкладка: Отзывы -->
 	<div id="tab-reviews" class="tab-content">
 		<h3 style="color: var(--neon-green); margin-bottom: 20px;">Отзывы покупателей</h3>
+
+		<!-- Форма добавления отзыва -->
+		<div class="add-review-form" style="background: rgba(0, 0, 0, 0.3); border-radius: 20px; padding: 25px; margin-bottom: 30px;">
+			<h4 style="color: var(--white); margin-bottom: 15px;"><i class="fas fa-edit"></i> Оставить отзыв</h4>
+
+			<div th:if="${#authorization.expression('isAuthenticated()')}" style="display: block;">
+				<form id="reviewForm" method="post" th:action="@{/reviews/main}" onsubmit="return submitReview(event)">
+					<input type="hidden" name="product.id" th:value="${product.id}"/>
+					<input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+					<div class="form-group mb-3">
+						<label style="color: var(--off-white); margin-bottom: 10px; display: block;">Ваша оценка:</label>
+						<div class="rating-input" style="display: flex; gap: 10px; font-size: 28px; cursor: pointer;">
+							<i class="far fa-star" data-rating="1" onclick="setRating(1)"></i>
+							<i class="far fa-star" data-rating="2" onclick="setRating(2)"></i>
+							<i class="far fa-star" data-rating="3" onclick="setRating(3)"></i>
+							<i class="far fa-star" data-rating="4" onclick="setRating(4)"></i>
+							<i class="far fa-star" data-rating="5" onclick="setRating(5)"></i>
+							<input type="hidden" name="rating" id="reviewRating" value="0" required>
+						</div>
+					</div>
+
+					<div class="form-group mb-3">
+						<label style="color: var(--off-white); margin-bottom: 10px; display: block;">Ваш комментарий:</label>
+						<textarea name="comment" id="reviewComment" rows="4"
+								  style="width: 100%; background: rgba(37, 39, 43, 0.9); border: 1px solid rgba(111, 240, 165, 0.3); border-radius: 12px; padding: 12px; color: var(--white);"
+								  placeholder="Поделитесь своим мнением о товаре..." required></textarea>
+					</div>
+
+					<button type="submit" class="btn-submit-review"
+							style="background: linear-gradient(135deg, var(--neon-green), var(--neon-green-dark)); color: var(--night-dark); border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
+						<i class="fas fa-paper-plane"></i> Отправить отзыв
+					</button>
+				</form>
+			</div>
+
+			<div th:if="${!#authorization.expression('isAuthenticated()')}" class="login-to-review"
+				 style="text-align: center; padding: 20px; background: rgba(111, 240, 165, 0.05); border-radius: 16px;">
+				<i class="fas fa-sign-in-alt" style="font-size: 2rem; color: var(--neon-green); margin-bottom: 10px;"></i>
+				<p style="color: var(--off-white);">Чтобы оставить отзыв, <a href="/login" style="color: var(--neon-green);">войдите</a> в аккаунт</p>
+			</div>
+		</div>
+
+		<!-- Список отзывов -->
 		<div th:if="${reviews != null and !reviews.isEmpty()}">
+			<h4 style="color: var(--white); margin-bottom: 20px;">Отзывы покупателей (<span th:text="${reviews.size()}">0</span>)</h4>
 			<div th:each="review : ${reviews}" class="review-card">
 				<div class="review-user" th:text="${review.userName != null ? review.userName : 'Пользователь'}"></div>
 				<div class="review-rating">
@@ -758,9 +828,7 @@
 			<div>
 				<h4 style="color: var(--neon-green); margin-bottom: 15px;"><i class="fas fa-truck"></i> Способы доставки</h4>
 				<ul style="color: var(--off-white); line-height: 1.8;">
-					<li><strong>Курьерская доставка</strong> — от 0 до 500 ₽ (1-2 дня)</li>
-					<li><strong>Пункты выдачи</strong> — бесплатно от 3000 ₽ (2-5 дней)</li>
-					<li><strong>Почта России</strong> — от 350 ₽ (3-14 дней)</li>
+					<li><strong>Курьерская доставка</strong> — Бесплатно (1-2 дня)</li>
 				</ul>
 			</div>
 			<div>
@@ -768,8 +836,6 @@
 				<ul style="color: var(--off-white); line-height: 1.8;">
 					<li><strong>Банковская карта</strong> (Visa, Mastercard, МИР)</li>
 					<li><strong>Наличные</strong> при получении</li>
-					<li><strong>СБП</strong> (Система быстрых платежей)</li>
-					<li><strong>Безналичный расчет</strong> для юр. лиц</li>
 				</ul>
 			</div>
 		</div>
@@ -805,12 +871,9 @@
 		<div class="footer-grid-new">
 			<div class="footer-section">
 				<div class="footer-logo"><div class="footer-logo-icon"><i class="fas fa-laptop-code"></i></div><span>ТехноШок</span></div>
-				<p class="footer-about">Интернет-магазин электроники с 2010 года.</p>
+				<p class="footer-about">Интернет-магазин электроники с 2026 года.</p>
 				<div class="social-links-new">
 					<a href="#" class="social-link"><i class="fab fa-vk"></i></a>
-					<a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
-					<a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-					<a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
 				</div>
 			</div>
 			<div class="footer-section">
@@ -839,114 +902,105 @@
 </div>
 
 
-<script>
+<script th:inline="javascript">
 	// Глобальные переменные для лайтбокса
 	let galleryImages = [];
 	let currentLightboxIndex = 0;
 
-	// Инициализация галереи
-	function initGallery() {
-		galleryImages = [];
-		// Добавляем основное изображение
-		const mainImage = document.getElementById('mainProductImage').src;
-		galleryImages.push(mainImage);
-		// Добавляем все миниатюры
-		document.querySelectorAll('.thumbnail img').forEach(img => {
-			galleryImages.push(img.src);
-		});
-		// Убираем дубликаты
-		galleryImages = [...new Set(galleryImages)];
-	}
+	// ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ФОРМОЙ ОТЗЫВА ==========
 
-	// Открытие лайтбокса
-	function openLightbox() {
-		initGallery();
-		currentLightboxIndex = 0;
-		const currentSrc = document.getElementById('mainProductImage').src;
-		currentLightboxIndex = galleryImages.indexOf(currentSrc);
-		if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+	function setRating(rating) {
+		const stars = document.querySelectorAll('.rating-input i');
+		const ratingInput = document.getElementById('reviewRating');
 
-		const lightbox = document.getElementById('lightbox');
-		const lightboxImage = document.getElementById('lightboxImage');
-		const counter = document.getElementById('lightboxCounter');
-
-		lightboxImage.src = galleryImages[currentLightboxIndex];
-		counter.textContent = `${currentLightboxIndex + 1} / ${galleryImages.length}`;
-		lightbox.classList.add('active');
-		document.body.style.overflow = 'hidden';
-	}
-
-	function closeLightbox() {
-		const lightbox = document.getElementById('lightbox');
-		lightbox.classList.remove('active');
-		document.body.style.overflow = '';
-	}
-
-	function prevImage() {
-		currentLightboxIndex--;
-		if (currentLightboxIndex < 0) {
-			currentLightboxIndex = galleryImages.length - 1;
-		}
-		const lightboxImage = document.getElementById('lightboxImage');
-		const counter = document.getElementById('lightboxCounter');
-		lightboxImage.src = galleryImages[currentLightboxIndex];
-		counter.textContent = `${currentLightboxIndex + 1} / ${galleryImages.length}`;
-	}
-
-	function nextImage() {
-		currentLightboxIndex++;
-		if (currentLightboxIndex >= galleryImages.length) {
-			currentLightboxIndex = 0;
-		}
-		const lightboxImage = document.getElementById('lightboxImage');
-		const counter = document.getElementById('lightboxCounter');
-		lightboxImage.src = galleryImages[currentLightboxIndex];
-		counter.textContent = `${currentLightboxIndex + 1} / ${galleryImages.length}`;
-	}
-
-	// Закрытие по ESC
-	document.addEventListener('keydown', function(e) {
-		const lightbox = document.getElementById('lightbox');
-		if (lightbox.classList.contains('active')) {
-			if (e.key === 'Escape') {
-				closeLightbox();
-			} else if (e.key === 'ArrowLeft') {
-				prevImage();
-			} else if (e.key === 'ArrowRight') {
-				nextImage();
+		stars.forEach((star, index) => {
+			if (index < rating) {
+				star.className = 'fas fa-star';
+				star.style.color = '#ffc107';
+			} else {
+				star.className = 'far fa-star';
+				star.style.color = '';
 			}
-		}
-	});
-
-	// Переключение вкладок
-	function switchTab(tabName) {
-		document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-		document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-		document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`).classList.add('active');
-		document.getElementById(`tab-${tabName}`).classList.add('active');
-	}
-
-	// Смена изображения в галерее
-	let currentImageIndex = 0;
-
-	function changeImageFromData(element) {
-		const imageUrl = element.getAttribute('data-image');
-		const index = parseInt(element.getAttribute('data-index'));
-
-		document.getElementById('mainProductImage').src = imageUrl;
-		currentImageIndex = index;
-
-		document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
-			if (i === index) thumb.classList.add('active');
-			else thumb.classList.remove('active');
 		});
+		ratingInput.value = rating;
 	}
 
-	// Остальные функции
-	function getCsrfToken() { return document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''; }
-	function getCsrfHeader() { return document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN'; }
-	function isUserAuthenticated() { return getCsrfToken() !== ''; }
+	function submitReview(event) {
+		event.preventDefault();
+
+		const rating = document.getElementById('reviewRating').value;
+		const comment = document.getElementById('reviewComment').value;
+
+		// Валидация
+		if (rating == 0) {
+			showNotification('Пожалуйста, поставьте оценку товару', true);
+			return false;
+		}
+
+		if (!comment.trim()) {
+			showNotification('Пожалуйста, напишите комментарий', true);
+			return false;
+		}
+
+		const productId = document.querySelector('input[name="product.id"]').value;
+		const csrfToken = getCsrfToken();
+
+		const form = document.getElementById('reviewForm');
+		const formData = new FormData(form);
+
+		const submitBtn = form.querySelector('button[type="submit"]');
+		const originalText = submitBtn.innerHTML;
+		submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Отправка...';
+		submitBtn.disabled = true;
+
+		// Отправляем обычным POST-запросом (не AJAX) на существующий endpoint
+		fetch('/reviews/main', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: new URLSearchParams({
+				'rating': rating,
+				'comment': comment,
+				'product.id': productId,
+				'_csrf': csrfToken
+			})
+		})
+				.then(response => {
+					if (response.redirected) {
+						// Успех - перенаправляем на страницу товара
+						showNotification('Отзыв успешно добавлен!');
+						window.location.href = response.url;
+					} else if (response.ok) {
+						showNotification('Отзыв успешно добавлен!');
+						setTimeout(() => window.location.reload(), 1500);
+					} else {
+						return response.text().then(text => { throw new Error(text); });
+					}
+				})
+				.catch(error => {
+					console.error('Error:', error);
+					showNotification('Произошла ошибка при отправке отзыва', true);
+					submitBtn.innerHTML = originalText;
+					submitBtn.disabled = false;
+				});
+
+		return false;
+	}
+
+	// ========== ОСТАЛЬНЫЕ ФУНКЦИИ ==========
+
+	function getCsrfToken() {
+		return document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+	}
+
+	function getCsrfHeader() {
+		return document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+	}
+
+	function isUserAuthenticated() {
+		return getCsrfToken() !== '';
+	}
 
 	function showNotification(message, isError = false) {
 		const notification = document.createElement('div');
@@ -988,11 +1042,10 @@
 						button.innerHTML = '<i class="fas fa-check"></i> Добавлено!';
 						setTimeout(() => { button.innerHTML = originalText; button.disabled = false; }, 1500);
 					} else if (data.redirect) { showAuthNotification(); }
-					else { showNotification(data.message || 'Ошибка', true); button.innerHTML = originalText; button.disabled = false; }
+					else { showNotification(data.message || 'Для выполнения этого действия необходимо авторизоваться', true); button.innerHTML = originalText; button.disabled = false; }
 				})
-				.catch(error => { console.error(error); showNotification('Ошибка соединения', true); button.innerHTML = originalText; button.disabled = false; });
+				.catch(error => { console.error(error); showNotification('Для выполнения этого действия необходимо авторизоваться', true); button.innerHTML = originalText; button.disabled = false; });
 	}
-
 
 	function toggleFavorite(button) {
 		event.stopPropagation();
@@ -1043,7 +1096,7 @@
 						showAuthNotification();
 					} else {
 						icon.className = originalIconClass;
-						showNotification('Произошла ошибка', true);
+						showNotification('Для выполнения этого действия необходимо авторизоваться', true);
 					}
 					button.disabled = false;
 				})
@@ -1051,7 +1104,7 @@
 					console.error(error);
 					icon.className = originalIconClass;
 					button.disabled = false;
-					showNotification('Ошибка соединения', true);
+					showNotification('Для выполнения этого действия необходимо авторизоваться', true);
 				});
 	}
 
@@ -1065,6 +1118,82 @@
 		if (productId) {
 			window.location.href = '/products/' + productId;
 		}
+	}
+
+	// Инициализация галереи
+	function initGallery() {
+		galleryImages = [];
+		const mainImage = document.getElementById('mainProductImage').src;
+		galleryImages.push(mainImage);
+		document.querySelectorAll('.thumbnail img').forEach(img => {
+			galleryImages.push(img.src);
+		});
+		galleryImages = [...new Set(galleryImages)];
+	}
+
+	function openLightbox() {
+		initGallery();
+		currentLightboxIndex = 0;
+		const currentSrc = document.getElementById('mainProductImage').src;
+		currentLightboxIndex = galleryImages.indexOf(currentSrc);
+		if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+
+		const lightbox = document.getElementById('lightbox');
+		const lightboxImage = document.getElementById('lightboxImage');
+		const counter = document.getElementById('lightboxCounter');
+
+		lightboxImage.src = galleryImages[currentLightboxIndex];
+		counter.textContent = `${currentLightboxIndex + 1} / ${galleryImages.length}`;
+		lightbox.classList.add('active');
+		document.body.style.overflow = 'hidden';
+	}
+
+	function closeLightbox() {
+		const lightbox = document.getElementById('lightbox');
+		lightbox.classList.remove('active');
+		document.body.style.overflow = '';
+	}
+
+	function prevImage() {
+		currentLightboxIndex--;
+		if (currentLightboxIndex < 0) {
+			currentLightboxIndex = galleryImages.length - 1;
+		}
+		const lightboxImage = document.getElementById('lightboxImage');
+		const counter = document.getElementById('lightboxCounter');
+		lightboxImage.src = galleryImages[currentLightboxIndex];
+		counter.textContent = `${currentLightboxIndex + 1} / ${galleryImages.length}`;
+	}
+
+	function nextImage() {
+		currentLightboxIndex++;
+		if (currentLightboxIndex >= galleryImages.length) {
+			currentLightboxIndex = 0;
+		}
+		const lightboxImage = document.getElementById('lightboxImage');
+		const counter = document.getElementById('lightboxCounter');
+		lightboxImage.src = galleryImages[currentLightboxIndex];
+		counter.textContent = `${currentLightboxIndex + 1} / ${galleryImages.length}`;
+	}
+
+	// Переключение вкладок
+	function switchTab(tabName) {
+		document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+		document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+		document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`).classList.add('active');
+		document.getElementById(`tab-${tabName}`).classList.add('active');
+	}
+
+	// Смена изображения
+	function changeImageFromData(element) {
+		const imageUrl = element.getAttribute('data-image');
+		const index = parseInt(element.getAttribute('data-index'));
+		document.getElementById('mainProductImage').src = imageUrl;
+		currentImageIndex = index;
+		document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+			if (i === index) thumb.classList.add('active');
+			else thumb.classList.remove('active');
+		});
 	}
 
 	function addBackgroundElements() {

@@ -438,10 +438,6 @@
                 <i class="fas fa-gamepad"></i>
                 <span>Игры</span>
             </a>
-            <a href="/category/accessories" class="category-item">
-                <i class="fas fa-mouse"></i>
-                <span>Аксессуары</span>
-            </a>
         </div>
     </div>
 </div>
@@ -529,14 +525,9 @@
                     </div>
                     <span>ТехноШок</span>
                 </div>
-                <p class="footer-about">Интернет-магазин электроники с 2010 года. Широкий ассортимент, быстрая доставка,
+                <p class="footer-about">Интернет-магазин электроники с 2026 года. Широкий ассортимент, быстрая доставка,
                     гарантия качества.</p>
-                <div class="social-links-new">
-                    <a href="#" class="social-link"><i class="fab fa-vk"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                </div>
+
             </div>
             <div class="footer-section">
                 <h4>Покупателям</h4>
@@ -586,10 +577,15 @@
         return document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
     }
 
-    function isUserAuthenticated() {
-        const csrfToken = getCsrfToken();
-        return csrfToken && csrfToken !== '';
-    }
+	function isUserAuthenticated() {
+		const csrfToken = getCsrfToken();
+		// Также можно проверить через мета-тег или Spring Security
+		const isAuthInput = document.getElementById('isAuthenticated');
+		if (isAuthInput && isAuthInput.value === 'true') {
+			return true;
+		}
+		return csrfToken && csrfToken !== '';
+	}
 
     // ==================== УВЕДОМЛЕНИЯ ====================
 
@@ -629,100 +625,112 @@
             .catch(error => console.error('Ошибка загрузки избранного:', error));
     }
 
-    function updateFavoriteButtons() {
-        if (!isUserAuthenticated()) {
-            document.querySelectorAll('.favorite-btn').forEach(btn => {
-                const icon = btn.querySelector('i');
-                if (icon) {
-                    icon.classList.remove('fas');
-                    icon.classList.add('far');
-                    btn.classList.remove('active');
-                }
-            });
-            return;
-        }
+	function updateFavoriteButtons() {
+		if (!isUserAuthenticated()) {
+			document.querySelectorAll('.favorite-btn').forEach(btn => {
+				const icon = btn.querySelector('i');
+				if (icon) {
+					icon.classList.remove('fas');
+					icon.classList.add('far');
+					btn.classList.remove('active');
+				}
+			});
+			return;
+		}
 
-        fetch('/favorites/ids')
-            .then(response => response.json())
-            .then(favoriteIds => {
-                document.querySelectorAll('.favorite-btn').forEach(btn => {
-                    const productId = parseInt(btn.getAttribute('data-id'));
-                    const icon = btn.querySelector('i');
-                    if (favoriteIds && favoriteIds.includes(productId)) {
-                        icon.classList.remove('far');
-                        icon.classList.add('fas');
-                        btn.classList.add('active');
-                    } else {
-                        icon.classList.remove('fas');
-                        icon.classList.add('far');
-                        btn.classList.remove('active');
-                    }
-                });
-            })
-            .catch(error => console.error('Ошибка загрузки избранного:', error));
-    }
+		fetch('/favorites/ids')
+				.then(response => {
+					if (response.status === 401 || response.status === 403) {
+						return [];
+					}
+					return response.json();
+				})
+				.then(favoriteIds => {
+					document.querySelectorAll('.favorite-btn').forEach(btn => {
+						const productId = parseInt(btn.getAttribute('data-id'));
+						const icon = btn.querySelector('i');
+						if (favoriteIds && favoriteIds.includes(productId)) {
+							icon.classList.remove('far');
+							icon.classList.add('fas');
+							btn.classList.add('active');
+						} else {
+							icon.classList.remove('fas');
+							icon.classList.add('far');
+							btn.classList.remove('active');
+						}
+					});
+				})
+				.catch(error => console.error('Ошибка загрузки избранного:', error));
+	}
 
-    function toggleFavorite(button) {
-        event.stopPropagation();
+	function toggleFavorite(button) {
+		event.stopPropagation();
 
-        if (!isUserAuthenticated()) {
-            window.location.href = '/login';
-            return;
-        }
+		if (!isUserAuthenticated()) {
+			showAuthNotification();
+			return;
+		}
 
-        const productId = button.getAttribute('data-id');
-        const icon = button.querySelector('i');
-        const isActive = button.classList.contains('active');
-        const url = isActive ? `/favorites/remove/${productId}` : `/favorites/add/${productId}`;
-        const method = isActive ? 'DELETE' : 'POST';
+		const productId = button.getAttribute('data-id');
+		const icon = button.querySelector('i');
+		const isActive = button.classList.contains('active');
+		const url = isActive ? `/favorites/remove/${productId}` : `/favorites/add/${productId}`;
+		const method = isActive ? 'DELETE' : 'POST';
 
-        const csrfToken = getCsrfToken();
-        const csrfHeader = getCsrfHeader();
+		const csrfToken = getCsrfToken();
+		const csrfHeader = getCsrfHeader();
 
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        if (csrfToken && csrfHeader) {
-            headers[csrfHeader] = csrfToken;
-        }
+		const headers = {
+			'Content-Type': 'application/json'
+		};
+		if (csrfToken && csrfHeader) {
+			headers[csrfHeader] = csrfToken;
+		}
 
-        button.disabled = true;
-        const originalIconClasses = icon.className;
-        icon.className = 'fas fa-spinner fa-pulse';
+		button.disabled = true;
+		const originalIconClasses = icon.className;
+		icon.className = 'fas fa-spinner fa-pulse';
 
-        fetch(url, { method: method, headers: headers })
-            .then(response => response.text())
-            .then(result => {
-                if (result === 'added') {
-                    icon.className = '';
-                    icon.classList.add('fas', 'fa-heart');
-                    button.classList.add('active');
-                    showNotification('Товар добавлен в избранное!');
-                    updateFavoritesCount();
-                } else if (result === 'removed') {
-                    icon.className = '';
-                    icon.classList.add('far', 'fa-heart');
-                    button.classList.remove('active');
-                    showNotification('Товар удалён из избранного');
-                    updateFavoritesCount();
-                } else if (result === 'exists') {
-                    icon.className = originalIconClasses;
-                    showNotification('Товар уже в избранном', true);
-                } else if (result === 'unauthorized') {
-                    window.location.href = '/login';
-                } else {
-                    icon.className = originalIconClasses;
-                    showNotification('Произошла ошибка', true);
-                }
-                button.disabled = false;
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                icon.className = originalIconClasses;
-                button.disabled = false;
-                showNotification('Ошибка соединения', true);
-            });
-    }
+		fetch(url, { method: method, headers: headers })
+				.then(response => {
+					if (response.status === 401 || response.status === 403) {
+						throw new Error('unauthorized');
+					}
+					return response.text();
+				})
+				.then(result => {
+					if (result === 'added') {
+						icon.className = '';
+						icon.classList.add('fas', 'fa-heart');
+						button.classList.add('active');
+						showNotification('Товар добавлен в избранное!');
+						updateFavoritesCount();
+					} else if (result === 'removed') {
+						icon.className = '';
+						icon.classList.add('far', 'fa-heart');
+						button.classList.remove('active');
+						showNotification('Товар удалён из избранного');
+						updateFavoritesCount();
+					} else if (result === 'exists') {
+						icon.className = originalIconClasses;
+						showNotification('Товар уже в избранном', true);
+					} else {
+						icon.className = originalIconClasses;
+						showNotification('Произошла ошибка', true);
+					}
+					button.disabled = false;
+				})
+				.catch(error => {
+					console.error('Ошибка:', error);
+					if (error.message === 'unauthorized') {
+						showAuthNotification();
+					} else {
+						icon.className = originalIconClasses;
+						button.disabled = false;
+						showNotification('Для выполнения этого действия необходимо авторизоваться', true);
+					}
+				});
+	}
 
     // ==================== КОРЗИНА (СЕРВЕР) ====================
 
@@ -736,52 +744,77 @@
             .catch(error => console.error('Ошибка загрузки корзины:', error));
     }
 
-    function addToCart(productId) {
-        const csrfToken = getCsrfToken();
-        const csrfHeader = getCsrfHeader();
+	// ==================== АВТОРИЗАЦИЯ ====================
 
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        if (csrfToken && csrfHeader) {
-            headers[csrfHeader] = csrfToken;
-        }
+	function showAuthNotification() {
+		showNotification('Для выполнения этого действия необходимо авторизоваться', true);
+		setTimeout(() => {
+			window.location.href = '/login';
+		}, 1500);
+	}
 
-        const button = event.target.closest('button');
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
-        button.disabled = true;
+	function addToCart(productId) {
+		event.stopPropagation();
 
-        fetch('/cart/add', {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({ productId: productId, quantity: 1 })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateCartCount();
-                    showNotification(data.message);
-                    button.innerHTML = '<i class="fas fa-check"></i> Добавлено!';
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                        button.disabled = false;
-                    }, 1500);
-                } else if (data.redirect) {
-                    window.location.href = data.redirect;
-                } else {
-                    showNotification(data.message || 'Ошибка при добавлении', true);
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                showNotification('Ошибка соединения', true);
-                button.innerHTML = originalText;
-                button.disabled = false;
-            });
-    }
+		if (!isUserAuthenticated()) {
+			showAuthNotification();
+			return;
+		}
+
+		const csrfToken = getCsrfToken();
+		const csrfHeader = getCsrfHeader();
+
+		const headers = {
+			'Content-Type': 'application/json'
+		};
+		if (csrfToken && csrfHeader) {
+			headers[csrfHeader] = csrfToken;
+		}
+
+		const button = event.target.closest('button');
+		const originalText = button.innerHTML;
+		button.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+		button.disabled = true;
+
+		fetch('/cart/add', {
+			method: 'POST',
+			headers: headers,
+			body: JSON.stringify({ productId: productId, quantity: 1 })
+		})
+				.then(response => {
+					if (response.status === 401 || response.status === 403) {
+						throw new Error('unauthorized');
+					}
+					return response.json();
+				})
+				.then(data => {
+					if (data.success) {
+						updateCartCount();
+						showNotification(data.message);
+						button.innerHTML = '<i class="fas fa-check"></i> Добавлено!';
+						setTimeout(() => {
+							button.innerHTML = originalText;
+							button.disabled = false;
+						}, 1500);
+					} else if (data.redirect) {
+						showAuthNotification();
+					} else {
+						showNotification(data.message || 'Ошибка при добавлении', true);
+						button.innerHTML = originalText;
+						button.disabled = false;
+					}
+				})
+				.catch(error => {
+					console.error('Ошибка:', error);
+					if (error.message === 'unauthorized') {
+						showAuthNotification();
+					} else {
+						showNotification('Ошибка соединения', true);
+						button.innerHTML = originalText;
+						button.disabled = false;
+					}
+				});
+	}
 
     // ==================== ИНИЦИАЛИЗАЦИЯ ТОВАРОВ ====================
 
@@ -832,44 +865,44 @@
         updateProductsCount();
     }
 
-    function renderProducts() {
-        const container = document.getElementById('productsGrid');
-        if (filteredProducts.length === 0) {
-            container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-box-open"></i><h3>Товары не найдены</h3><p>Попробуйте изменить фильтр</p></div>';
-            document.getElementById('pagination').innerHTML = '';
-            return;
-        }
+	function renderProducts() {
+		const container = document.getElementById('productsGrid');
+		if (filteredProducts.length === 0) {
+			container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><i class="fas fa-box-open"></i><h3>Товары не найдены</h3><p>Попробуйте изменить фильтр</p></div>';
+			document.getElementById('pagination').innerHTML = '';
+			return;
+		}
 
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const pageProducts = filteredProducts.slice(start, end);
+		const start = (currentPage - 1) * itemsPerPage;
+		const end = start + itemsPerPage;
+		const pageProducts = filteredProducts.slice(start, end);
 
-        container.innerHTML = pageProducts.map(product => `
-            <div class="product-card" onclick="window.location.href='/product/${product.id}'">
-                <div class="product-badge">${product.badge || product.category}</div>
-                <button class="favorite-btn" data-id="${product.id}" onclick="event.stopPropagation(); toggleFavorite(this)">
-                    <i class="far fa-heart"></i>
-                </button>
-                <img src="${product.image}" alt="${product.name}" onerror="this.src='/images/images.png'">
-                <h3 class="product-title">${product.name}</h3>
-                <div class="product-category"><i class="fas fa-tag"></i> ${product.category}</div>
-                <div class="product-rating">
-                    ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5 - Math.floor(product.rating))}
-                    <span style="margin-left: 5px;">${product.rating.toFixed(1)}</span>
-                </div>
-                <div class="product-price">
-                    ${product.price.toLocaleString()} ₽
-                    ${product.oldPrice ? `<span class="product-old-price">${product.oldPrice.toLocaleString()} ₽</span>` : ''}
-                </div>
-                <button class="btn btn-success" onclick="event.stopPropagation(); addToCart(${product.id})">
-                    <i class="fas fa-shopping-cart"></i> В корзину
-                </button>
+		container.innerHTML = pageProducts.map(product => `
+        <div class="product-card" onclick="window.location.href='/products/${product.id}'">
+            <div class="product-badge">${product.badge || product.category}</div>
+            <button class="favorite-btn" data-id="${product.id}" onclick="event.stopPropagation(); toggleFavorite(this)">
+                <i class="far fa-heart"></i>
+            </button>
+            <img src="${product.image}" alt="${product.name}" onerror="this.src='/images/images.png'">
+            <h3 class="product-title">${product.name}</h3>
+            <div class="product-category"><i class="fas fa-tag"></i> ${product.category}</div>
+            <div class="product-rating">
+                ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5 - Math.floor(product.rating))}
+                <span style="margin-left: 5px;">${product.rating.toFixed(1)}</span>
             </div>
-        `).join('');
+            <div class="product-price">
+                ${product.price.toLocaleString()} ₽
+                ${product.oldPrice ? `<span class="product-old-price">${product.oldPrice.toLocaleString()} ₽</span>` : ''}
+            </div>
+            <button class="btn btn-success" onclick="event.stopPropagation(); addToCart(${product.id})">
+                <i class="fas fa-shopping-cart"></i> В корзину
+            </button>
+        </div>
+    `).join('');
 
-        renderPagination();
-        updateFavoriteButtons();
-    }
+		renderPagination();
+		updateFavoriteButtons();
+	}
 
     function renderPagination() {
         const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
