@@ -1,0 +1,118 @@
+04-28 00:54:25 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Синтаксическая ошибка в выражении SQL "CREATE TABLE IF NOT EXISTS PRODUCTS ( ID SERIAL PRIMARY KEY, NAME VARCHAR(100) NOT NULL, DESCRIPTION TEXT, CATEGORY_ID INT REFERENCES CATEGORIES (ID) ON DELETE CASCADE NOT NULL[*], BRAND_ID INT REFERENCES BRANDS (ID) ON DELETE CASCADE NOT NULL, PRICE DECIMAL(10, 2) NOT NULL, OLD_PRICE DECIMAL(10, 2), FILE_URL VARCHAR(500), PROCESSOR VARCHAR(200), RAM VARCHAR(50), STORAGE VARCHAR(100), DISPLAY VARCHAR(200), BATTERY VARCHAR(100), COLOR VARCHAR(50), WEIGHT VARCHAR(50), WARRANTY VARCHAR(50), COUNTRY VARCHAR(100), ADDITIONAL_INFO TEXT, IN_STOCK BOOLEAN DEFAULT TRUE, STOCK_QUANTITY INT DEFAULT 0, CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP ) "; ожидалось "DEFERRABLE"
+Syntax error in SQL statement "CREATE TABLE IF NOT EXISTS PRODUCTS ( ID SERIAL PRIMARY KEY, NAME VARCHAR(100) NOT NULL, DESCRIPTION TEXT, CATEGORY_ID INT REFERENCES CATEGORIES (ID) ON DELETE CASCADE NOT NULL[*], BRAND_ID INT REFERENCES BRANDS (ID) ON DELETE CASCADE NOT NULL, PRICE DECIMAL(10, 2) NOT NULL, OLD_PRICE DECIMAL(10, 2), FILE_URL VARCHAR(500), PROCESSOR VARCHAR(200), RAM VARCHAR(50), STORAGE VARCHAR(100), DISPLAY VARCHAR(200), BATTERY VARCHAR(100), COLOR VARCHAR(50), WEIGHT VARCHAR(50), WARRANTY VARCHAR(50), COUNTRY VARCHAR(100), ADDITIONAL_INFO TEXT, IN_STOCK BOOLEAN DEFAULT TRUE, STOCK_QUANTITY INT DEFAULT 0, CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP ) "; expected "DEFERRABLE"; SQL statement:
+CREATE TABLE IF NOT EXISTS products ( id SERIAL PRIMARY KEY, name VARCHAR(100) NOT NULL, description TEXT, category_id INT REFERENCES categories (id) ON DELETE CASCADE NOT NULL, brand_id INT REFERENCES brands (id) ON DELETE CASCADE NOT NULL, price DECIMAL(10, 2) NOT NULL, old_price DECIMAL(10, 2), file_url VARCHAR(500), processor VARCHAR(200), ram VARCHAR(50), storage VARCHAR(100), display VARCHAR(200), battery VARCHAR(100), color VARCHAR(50), weight VARCHAR(50), warranty VARCHAR(50), country VARCHAR(100), additional_info TEXT, in_stock BOOLEAN DEFAULT TRUE, stock_quantity INT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ) [42001-148]
+04-28 01:05:47 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Синтаксическая ошибка в выражении SQL "INSERT INTO CATEGORIES (NAME) VALUES ('Ноутбуки'), ('Смартфоны'), ('Телевизоры'), ('Аудиотехника'), ('Игровые товары'), ('Аксессуары'), ('Планшеты'), ('Умный дом'), ('Смарт-часы'), ('Наушники'), ('Мониторы'), ('Клавиатуры'), ('Мыши'), ('Принтеры'), ('Роутеры'), ('Power Bank') ON[*] CONFLICT (NAME) DO NOTHING "
+Syntax error in SQL statement "INSERT INTO CATEGORIES (NAME) VALUES ('Ноутбуки'), ('Смартфоны'), ('Телевизоры'), ('Аудиотехника'), ('Игровые товары'), ('Аксессуары'), ('Планшеты'), ('Умный дом'), ('Смарт-часы'), ('Наушники'), ('Мониторы'), ('Клавиатуры'), ('Мыши'), ('Принтеры'), ('Роутеры'), ('Power Bank') ON[*] CONFLICT (NAME) DO NOTHING "; SQL statement:
+INSERT INTO categories (name) VALUES ('Ноутбуки'), ('Смартфоны'), ('Телевизоры'), ('Аудиотехника'), ('Игровые товары'), ('Аксессуары'), ('Планшеты'), ('Умный дом'), ('Смарт-часы'), ('Наушники'), ('Мониторы'), ('Клавиатуры'), ('Мыши'), ('Принтеры'), ('Роутеры'), ('Power Bank') ON CONFLICT (name) DO NOTHING [42000-148]
+04-28 01:08:48 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Синтаксическая ошибка в выражении SQL "INSERT INTO CATEGORIES (NAME) VALUES ('Ноутбуки'), ('Смартфоны'), ('Телевизоры'), ('Аудиотехника'), ('Игровые товары'), ('Аксессуары'), ('Планшеты'), ('Умный дом'), ('Смарт-часы'), ('Наушники'), ('Мониторы'), ('Клавиатуры'), ('Мыши'), ('Принтеры'), ('Роутеры'), ('Power Bank') ON[*] CONFLICT (NAME) DO NOTHING "
+Syntax error in SQL statement "INSERT INTO CATEGORIES (NAME) VALUES ('Ноутбуки'), ('Смартфоны'), ('Телевизоры'), ('Аудиотехника'), ('Игровые товары'), ('Аксессуары'), ('Планшеты'), ('Умный дом'), ('Смарт-часы'), ('Наушники'), ('Мониторы'), ('Клавиатуры'), ('Мыши'), ('Принтеры'), ('Роутеры'), ('Power Bank') ON[*] CONFLICT (NAME) DO NOTHING "; SQL statement:
+INSERT INTO categories (name) VALUES ('Ноутбуки'), ('Смартфоны'), ('Телевизоры'), ('Аудиотехника'), ('Игровые товары'), ('Аксессуары'), ('Планшеты'), ('Умный дом'), ('Смарт-часы'), ('Наушники'), ('Мониторы'), ('Клавиатуры'), ('Мыши'), ('Принтеры'), ('Роутеры'), ('Power Bank') ON CONFLICT (name) DO NOTHING [42000-148]
+04-28 01:18:11 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Подзапрос выбирает более одной строки
+Scalar subquery contains more than one row; SQL statement:
+INSERT INTO users (username, name, surname, password, email, phone, registration_date, role_id, address) SELECT 'user', 'Иван', 'Петров', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOpw7KcI3QHqG', 'user@example.com', '+7 (999) 123-45-67', CURRENT_DATE, (SELECT id FROM roles WHERE name = 'USER'), 'г. Москва, ул. Тверская, д. 10, кв. 25' WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'user') [90053-148]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:327)
+	at org.h2.message.DbException.get(DbException.java:167)
+	at org.h2.message.DbException.get(DbException.java:144)
+	at org.h2.message.DbException.get(DbException.java:133)
+	at org.h2.expression.Subquery.getValue(Subquery.java:40)
+	at org.h2.command.dml.Select.queryFlat(Select.java:504)
+	at org.h2.command.dml.Select.queryWithoutCache(Select.java:597)
+	at org.h2.command.dml.Query.query(Query.java:257)
+	at org.h2.command.dml.Query.query(Query.java:227)
+	at org.h2.command.dml.Insert.insertRows(Insert.java:136)
+	at org.h2.command.dml.Insert.update(Insert.java:86)
+	at org.h2.command.CommandContainer.update(CommandContainer.java:69)
+	at org.h2.command.Command.executeUpdate(Command.java:200)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:178)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:153)
+	at com.zaxxer.hikari.pool.ProxyStatement.execute(ProxyStatement.java:94)
+	at com.zaxxer.hikari.pool.HikariProxyStatement.execute(HikariProxyStatement.java)
+	at org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript(ScriptUtils.java:261)
+	at org.springframework.jdbc.datasource.init.ResourceDatabasePopulator.populate(ResourceDatabasePopulator.java:254)
+	at org.springframework.jdbc.datasource.init.DatabasePopulatorUtils.execute(DatabasePopulatorUtils.java:54)
+	at org.springframework.boot.jdbc.init.DataSourceScriptDatabaseInitializer.runScripts(DataSourceScriptDatabaseInitializer.java:87)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.runScripts(AbstractScriptDatabaseInitializer.java:146)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.applyScripts(AbstractScriptDatabaseInitializer.java:108)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.applySchemaScripts(AbstractScriptDatabaseInitializer.java:98)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.initializeDatabase(AbstractScriptDatabaseInitializer.java:76)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.afterPropertiesSet(AbstractScriptDatabaseInitializer.java:66)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1849)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1798)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:601)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:523)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:336)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:288)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:334)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:312)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:204)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:970)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:627)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350)
+	at org.example.Main.main(Main.java:9)
+04-28 01:18:44 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Подзапрос выбирает более одной строки
+Scalar subquery contains more than one row; SQL statement:
+INSERT INTO users (username, name, surname, password, email, phone, registration_date, role_id, address) SELECT 'user', 'Иван', 'Петров', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOpw7KcI3QHqG', 'user@example.com', '+7 (999) 123-45-67', CURRENT_DATE, (SELECT id FROM roles WHERE name = 'USER'), 'г. Москва, ул. Тверская, д. 10, кв. 25' WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'user') [90053-148]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:327)
+	at org.h2.message.DbException.get(DbException.java:167)
+	at org.h2.message.DbException.get(DbException.java:144)
+	at org.h2.message.DbException.get(DbException.java:133)
+	at org.h2.expression.Subquery.getValue(Subquery.java:40)
+	at org.h2.command.dml.Select.queryFlat(Select.java:504)
+	at org.h2.command.dml.Select.queryWithoutCache(Select.java:597)
+	at org.h2.command.dml.Query.query(Query.java:257)
+	at org.h2.command.dml.Query.query(Query.java:227)
+	at org.h2.command.dml.Insert.insertRows(Insert.java:136)
+	at org.h2.command.dml.Insert.update(Insert.java:86)
+	at org.h2.command.CommandContainer.update(CommandContainer.java:69)
+	at org.h2.command.Command.executeUpdate(Command.java:200)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:178)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:153)
+	at com.zaxxer.hikari.pool.ProxyStatement.execute(ProxyStatement.java:94)
+	at com.zaxxer.hikari.pool.HikariProxyStatement.execute(HikariProxyStatement.java)
+	at org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript(ScriptUtils.java:261)
+	at org.springframework.jdbc.datasource.init.ResourceDatabasePopulator.populate(ResourceDatabasePopulator.java:254)
+	at org.springframework.jdbc.datasource.init.DatabasePopulatorUtils.execute(DatabasePopulatorUtils.java:54)
+	at org.springframework.boot.jdbc.init.DataSourceScriptDatabaseInitializer.runScripts(DataSourceScriptDatabaseInitializer.java:87)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.runScripts(AbstractScriptDatabaseInitializer.java:146)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.applyScripts(AbstractScriptDatabaseInitializer.java:108)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.applySchemaScripts(AbstractScriptDatabaseInitializer.java:98)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.initializeDatabase(AbstractScriptDatabaseInitializer.java:76)
+	at org.springframework.boot.sql.init.AbstractScriptDatabaseInitializer.afterPropertiesSet(AbstractScriptDatabaseInitializer.java:66)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1849)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1798)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:601)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:523)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:336)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:288)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:334)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:312)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:204)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:970)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:627)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350)
+	at org.example.Main.main(Main.java:9)
+04-28 14:43:12 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Синтаксическая ошибка в выражении SQL "SELECT DISTINCT A1_0.ID,A1_0.ARTICLE_TYPE,A2_0.ID,A2_0.ADDRESS,A2_0.EMAIL,A2_0.NAME,A2_0.PASSWORD,A2_0.PHONE,A2_0.REGISTRATION_DATE,A2_0.ROLE_ID,A2_0.SURNAME,A2_0.USERNAME,A1_0.CONTENT,A1_0.CREATED_AT,A1_0.DISLIKES,A1_0.EXCERPT,A1_0.IMAGE_URL,A1_0.LIKES,A1_0.PUBLISHED_AT,A1_0.SLUG,A1_0.STATUS,A1_0.TITLE,A1_0.UPDATED_AT,A1_0.VIEWS FROM ARTICLES A1_0 LEFT JOIN USERS A2_0 ON A2_0.ID=A1_0.AUTHOR_ID WHERE A1_0.STATUS='PUBLISHED' ORDER BY A1_0.PUBLISHED_AT DESC FETCH[*] FIRST ? ROWS ONLY "
+Syntax error in SQL statement "SELECT DISTINCT A1_0.ID,A1_0.ARTICLE_TYPE,A2_0.ID,A2_0.ADDRESS,A2_0.EMAIL,A2_0.NAME,A2_0.PASSWORD,A2_0.PHONE,A2_0.REGISTRATION_DATE,A2_0.ROLE_ID,A2_0.SURNAME,A2_0.USERNAME,A1_0.CONTENT,A1_0.CREATED_AT,A1_0.DISLIKES,A1_0.EXCERPT,A1_0.IMAGE_URL,A1_0.LIKES,A1_0.PUBLISHED_AT,A1_0.SLUG,A1_0.STATUS,A1_0.TITLE,A1_0.UPDATED_AT,A1_0.VIEWS FROM ARTICLES A1_0 LEFT JOIN USERS A2_0 ON A2_0.ID=A1_0.AUTHOR_ID WHERE A1_0.STATUS='PUBLISHED' ORDER BY A1_0.PUBLISHED_AT DESC FETCH[*] FIRST ? ROWS ONLY "; SQL statement:
+select distinct a1_0.id,a1_0.article_type,a2_0.id,a2_0.address,a2_0.email,a2_0.name,a2_0.password,a2_0.phone,a2_0.registration_date,a2_0.role_id,a2_0.surname,a2_0.username,a1_0.content,a1_0.created_at,a1_0.dislikes,a1_0.excerpt,a1_0.image_url,a1_0.likes,a1_0.published_at,a1_0.slug,a1_0.status,a1_0.title,a1_0.updated_at,a1_0.views from articles a1_0 left join users a2_0 on a2_0.id=a1_0.author_id where a1_0.status='PUBLISHED' order by a1_0.published_at desc fetch first ? rows only [42000-148]
+04-28 14:43:32 jdbc[2]: exception
+org.h2.jdbc.JdbcSQLException: Синтаксическая ошибка в выражении SQL "SELECT DISTINCT A1_0.ID,A1_0.ARTICLE_TYPE,A2_0.ID,A2_0.ADDRESS,A2_0.EMAIL,A2_0.NAME,A2_0.PASSWORD,A2_0.PHONE,A2_0.REGISTRATION_DATE,A2_0.ROLE_ID,A2_0.SURNAME,A2_0.USERNAME,A1_0.CONTENT,A1_0.CREATED_AT,A1_0.DISLIKES,A1_0.EXCERPT,A1_0.IMAGE_URL,A1_0.LIKES,A1_0.PUBLISHED_AT,A1_0.SLUG,A1_0.STATUS,A1_0.TITLE,A1_0.UPDATED_AT,A1_0.VIEWS FROM ARTICLES A1_0 LEFT JOIN USERS A2_0 ON A2_0.ID=A1_0.AUTHOR_ID WHERE A1_0.STATUS='PUBLISHED' ORDER BY A1_0.PUBLISHED_AT DESC FETCH[*] FIRST ? ROWS ONLY "
+Syntax error in SQL statement "SELECT DISTINCT A1_0.ID,A1_0.ARTICLE_TYPE,A2_0.ID,A2_0.ADDRESS,A2_0.EMAIL,A2_0.NAME,A2_0.PASSWORD,A2_0.PHONE,A2_0.REGISTRATION_DATE,A2_0.ROLE_ID,A2_0.SURNAME,A2_0.USERNAME,A1_0.CONTENT,A1_0.CREATED_AT,A1_0.DISLIKES,A1_0.EXCERPT,A1_0.IMAGE_URL,A1_0.LIKES,A1_0.PUBLISHED_AT,A1_0.SLUG,A1_0.STATUS,A1_0.TITLE,A1_0.UPDATED_AT,A1_0.VIEWS FROM ARTICLES A1_0 LEFT JOIN USERS A2_0 ON A2_0.ID=A1_0.AUTHOR_ID WHERE A1_0.STATUS='PUBLISHED' ORDER BY A1_0.PUBLISHED_AT DESC FETCH[*] FIRST ? ROWS ONLY "; SQL statement:
+select distinct a1_0.id,a1_0.article_type,a2_0.id,a2_0.address,a2_0.email,a2_0.name,a2_0.password,a2_0.phone,a2_0.registration_date,a2_0.role_id,a2_0.surname,a2_0.username,a1_0.content,a1_0.created_at,a1_0.dislikes,a1_0.excerpt,a1_0.image_url,a1_0.likes,a1_0.published_at,a1_0.slug,a1_0.status,a1_0.title,a1_0.updated_at,a1_0.views from articles a1_0 left join users a2_0 on a2_0.id=a1_0.author_id where a1_0.status='PUBLISHED' order by a1_0.published_at desc fetch first ? rows only [42000-148]
