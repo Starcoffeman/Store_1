@@ -5,13 +5,13 @@ WORKDIR /home/gradle/src
 RUN ./gradlew clean bootJar -x test
 
 # Этап 2: Запуск
-FROM openjdk:17-jdk-slim
+# Используем поддерживаемый образ Eclipse Temurin (JRE — он легче и лучше для Render)
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Копируем и сразу переименовываем, чтобы не гадать с именем файла
+# Копируем jar-файл
 COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
 
-# Используем "Exec form" (массив строк).
-# Это гарантирует, что Java запустится напрямую, минуя оболочку sh.
-# Важно: Spring Boot автоматически подхватит переменную PORT из окружения Render.
+# Настройки для Render
+# Используем массив [], чтобы избежать ошибки "sh: illegal option -X"
 ENTRYPOINT ["java", "-Xmx300m", "-Xss512k", "-jar", "app.jar"]
