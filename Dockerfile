@@ -17,4 +17,4 @@ WORKDIR /app
 COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
 
 # Настройки для Render
-ENTRYPOINT ["java", "-Xmx300m", "-Xss512k", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx512m", "-Xss1m", "-jar", "app.jar"]
